@@ -4,17 +4,28 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const registrationCred = require("../middleware/registrationCred");
+const authenticate = require("../middleware/authenticate");
 
 router.get("/", async (req, res) => {
   res
     .status(200)
     .json({ status: "success", message: "made it to users router" });
 });
-router.get("/:uid", async (req, res) => {
+router.get("/:uid", authenticate, async (req, res) => {
   const { uid } = req.params;
   try {
-    const user = await Users.findById(uid);
-    res.status(200).send(user);
+    const user = await Users.find({ uid });
+    const response = {
+      username: user[0].username,
+      uid: user[0].uid,
+    };
+    if (user[0].uid) {
+      res.status(200).json({
+        status: "success",
+        code: 200,
+        message: response,
+      });
+    }
   } catch {
     res.status(404).json({
       status: "failed",
@@ -51,8 +62,9 @@ router.post("/login", async (req, res) => {
   let { username, email, password } = req.body;
   try {
     const user = await Users.find({ $or: [{ username }, { email }] });
-    if (user.uid && bcrypt.compareSync(password, user.password)) {
-      const token = generateToken(user);
+    const response = user.filter((i) => i.uid)[0];
+    if (response.uid && bcrypt.compareSync(password, response.password)) {
+      const token = await generateToken(response);
       res.status(200).json({
         message: "Successfully logged in",
         status: "success",
