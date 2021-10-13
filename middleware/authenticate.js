@@ -10,9 +10,9 @@ module.exports = async (req, res, next) => {
   try {
     const token = authorization.split(" ")[1];
     req.user = jwt.verify(token, accessTokenSecret);
+    next();
   } catch (err) {
     // could not authenticate
     res.status(401).json({ message: "you shall not pass!" });
   }
-  next();
 };

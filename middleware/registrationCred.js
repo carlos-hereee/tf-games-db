@@ -8,12 +8,8 @@ module.exports = async (req, res, next) => {
       res.status(400).json({
         message: "A user already exists with that username",
       });
+    } else {
+      next();
     }
-  } catch {
-    res.status(500).json({
-      message:
-        "An error occured checking if user already exists with that username",
-    });
-  }
-  next();
+  } catch {}
 };

@@ -12,10 +12,17 @@ const {
   refreshTokenSecret,
 } = require("../usefulFunctions");
 
-router.get("/", async (req, res) => {
-  res
-    .status(200)
-    .json({ status: "success", message: "made it to users router" });
+router.get("/", authenticate, async (req, res) => {
+  const { uid, username, email } = req.user;
+  // get users data
+  try {
+    const user = await Users.findOne({
+      $or: [{ uid }, { username }, { email }],
+    });
+    res.status(200).json({ message: useableUserData(user) });
+  } catch {
+    res.status(404).json({ message: "user not found" });
+  }
 });
 router.get("/:uid", authenticate, async (req, res) => {
   const { uid } = req.params;
@@ -41,59 +48,59 @@ router.post("/register", registrationCred, async (req, res) => {
     const newUser = await new Users(user).save();
     if (newUser.uid) {
       const refreshToken = generateRefreshToken(newUser);
-      const accessToken = generateRefreshToken(newUser);
+      const accessToken = generateAccessToken(newUser);
       res.cookie("secret-cookie", refreshToken, { httpOnly: true });
       res.status(200).json({
         user: useableUserData(response),
         accessToken: accessToken,
       });
     }
-  } catch {
+  } catch (e) {
+    console.log("e", e);
     res.status(400).json({ message: "Failed to make user" });
   }
 });
 router.post("/login", async (req, res) => {
-  let { username, email, password } = req.body;
+  let { username, password } = req.body;
   try {
-    const user = await Users.find({ $or: [{ username }, { email }] });
+    const user = await Users.find({ $or: [{ username }, { email: username }] });
     const response = user.filter((i) => i.uid)[0];
     if (response.uid && bcrypt.compareSync(password, response.password)) {
       const refreshToken = generateRefreshToken(response);
-      const accessToken = generateRefreshToken(response);
+      const accessToken = generateAccessToken(response);
       res.cookie("secret-cookie", refreshToken, { httpOnly: true });
       res.status(200).json({
         user: useableUserData(response),
         accessToken: accessToken,
       });
-    } else {
-      res.status(401).json({ message: "username or password are invalid " });
     }
   } catch (e) {
-    res.status(500).json({
-      message: "couldn't login user in, try again later",
-    });
+    res.status(401).json({ message: "username or password are invalid " });
   }
 });
+
 router.post("/refresh-token", async (req, res) => {
   const token = req.cookies["secret-cookie"];
   let payload = null;
   if (!token) {
     // no cookie
-    res.status(400).json({ success: false, accessToken: "" });
+    res.status(400).json({ accessToken: "" });
   }
   try {
     payload = jwt.verify(token, refreshTokenSecret);
-    const user = await Users.find({ uid });
+    const user = await Users.findOne({
+      $or: [{ username: payload.username }, { uid: payload.uid }],
+    });
     if (!user) {
-      res.status(400).json({ success: false, accessToken: "" });
+      res.status(400).json({ accessToken: "" });
     }
     // token is valid and we send an access token
     const refreshToken = generateRefreshToken(user);
-    const accessToken = generateRefreshToken(user);
+    const accessToken = generateAccessToken(user);
     res.cookie("secret-cookie", refreshToken, { httpOnly: true });
     res.status(200).json({ accessToken: accessToken });
   } catch {
-    res.status(400).json({ success: false, accessToken: "" });
+    res.status(400).json({ accessToken: "" });
   }
 });
 
