@@ -4,6 +4,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const userRouter = require("./routes/user-router.js");
 const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
 
 // CONNECT TO MONGOOSEDB
 const uri = `mongodb+srv://${process.env.MONGOOSE_USERNAME}:${process.env.MONGOOSE_PASSWORD}@cluster0.9er2n.mongodb.net/take-five-db?retryWrites=true&w=majority`;
@@ -11,10 +12,16 @@ const uri = `mongodb+srv://${process.env.MONGOOSE_USERNAME}:${process.env.MONGOO
 const port = process.env.PORT || 4937;
 const server = express();
 server.use(helmet());
-server.use(cors());
+server.use(cookieParser());
+server.use(
+  cors({
+    credentials: true,
+    origin: process.env.FRONT_END_BASE_URL,
+  })
+);
 server.use(express.json());
 server.use("/users/", userRouter);
-//tesing server
+// tesing server
 server.get("/", (req, res) => {
   res
     .status(200)

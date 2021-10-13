@@ -1,30 +1,18 @@
 const jwt = require("jsonwebtoken");
+const { accessTokenSecret } = require("../usefulFunctions");
 
-module.exports = (req, res, next) => {
-  const token = req.headers.authorization;
-  if (token) {
-    jwt.verify(
-      token,
-      process.env.JWT_SECRET || "keep it secret, keep it safe",
-      (err, decodedToken) => {
-        if (err) {
-          console.log("err", err);
-          res.status(401).json({
-            status: "failed",
-            code: 401,
-            message: "you shall not pass!",
-          });
-        } else {
-          req.user = { username: decodedToken.username };
-          next();
-        }
-      }
-    );
-  } else {
-    res.status(400).json({
-      status: "failed",
-      code: 400,
-      message: "you need a token authorization",
-    });
+module.exports = async (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    // no authorization header
+    res.status(400).json({ message: "you need a token authorization" });
   }
+  try {
+    const token = authorization.split(" ")[1];
+    req.user = jwt.verify(token, accessTokenSecret);
+  } catch (err) {
+    // could not authenticate
+    res.status(401).json({ message: "you shall not pass!" });
+  }
+  next();
 };
