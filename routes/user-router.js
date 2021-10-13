@@ -7,8 +7,8 @@ const registrationCred = require("../middleware/registrationCred");
 const authenticate = require("../middleware/authenticate");
 const {
   useableUserData,
-  generateToken,
-  accessTokenSecret,
+  generateAccessToken,
+  generateRefreshToken,
   refreshTokenSecret,
 } = require("../usefulFunctions");
 
@@ -39,16 +39,17 @@ router.post("/register", registrationCred, async (req, res) => {
   user.uid = uuidv4();
   try {
     const newUser = await new Users(user).save();
-    const token = generateToken(user, { expiresIn: "3d" });
-    if (newUser.uid)
+    if (newUser.uid) {
+      const refreshToken = generateRefreshToken(newUser);
+      const accessToken = generateRefreshToken(newUser);
+      res.cookie("secret-cookie", refreshToken, { httpOnly: true });
       res.status(200).json({
-        message: "succesfully created user",
-        token: token,
+        user: useableUserData(response),
+        accessToken: accessToken,
       });
+    }
   } catch {
-    res.status(400).json({
-      message: "Failed to make user",
-    });
+    res.status(400).json({ message: "Failed to make user" });
   }
 });
 router.post("/login", async (req, res) => {
@@ -56,27 +57,20 @@ router.post("/login", async (req, res) => {
   try {
     const user = await Users.find({ $or: [{ username }, { email }] });
     const response = user.filter((i) => i.uid)[0];
-    const accessToken = await generateToken(response, accessTokenSecret, {
-      expiresIn: "1d",
-    });
-    const refreshToken = await generateToken(response, refreshTokenSecret, {
-      expiresIn: "30d",
-    });
     if (response.uid && bcrypt.compareSync(password, response.password)) {
+      const refreshToken = generateRefreshToken(response);
+      const accessToken = generateRefreshToken(response);
       res.cookie("secret-cookie", refreshToken, { httpOnly: true });
       res.status(200).json({
-        message: "Successfully logged in",
         user: useableUserData(response),
         accessToken: accessToken,
       });
     } else {
-      res.status(401).json({
-        message: "username or password are invalid ",
-      });
+      res.status(401).json({ message: "username or password are invalid " });
     }
   } catch (e) {
     res.status(500).json({
-      message: "An error occured login user in, try again later",
+      message: "couldn't login user in, try again later",
     });
   }
 });
@@ -89,22 +83,18 @@ router.post("/refresh-token", async (req, res) => {
   }
   try {
     payload = jwt.verify(token, refreshTokenSecret);
+    const user = await Users.find({ uid });
+    if (!user) {
+      res.status(400).json({ success: false, accessToken: "" });
+    }
+    // token is valid and we send an access token
+    const refreshToken = generateRefreshToken(user);
+    const accessToken = generateRefreshToken(user);
+    res.cookie("secret-cookie", refreshToken, { httpOnly: true });
+    res.status(200).json({ accessToken: accessToken });
   } catch {
     res.status(400).json({ success: false, accessToken: "" });
   }
-  // token is valid and we send an access token
-  const user = await Users.findOne({ uid: payload.uid });
-  if (!user) {
-    res.status(400).json({ success: false, accessToken: "" });
-  }
-  const refreshToken = await generateToken(user, refreshTokenSecret, {
-    expiresIn: "30d",
-  });
-  res.cookie("secret-cookie", refreshToken, { httpOnly: true });
-  res.status(200).json({
-    success: true,
-    accessToken: generateToken(user, accessTokenSecret),
-  });
 });
 
 module.exports = router;
