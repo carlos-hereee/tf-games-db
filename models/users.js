@@ -10,6 +10,7 @@ const userSchema = new Schema(
     email: { type: String, set: toLower },
     elo: { type: Number },
     avatarSrc: { type: String },
+    nickname: { type: String },
   },
   { timestamps: true }
 );

@@ -50,32 +50,34 @@ router.post("/register", registrationCred, async (req, res) => {
       const refreshToken = generateRefreshToken(newUser);
       const accessToken = generateAccessToken(newUser);
       res.cookie("secret-cookie", refreshToken, { httpOnly: true });
-      res.status(200).json({
+      return res.status(200).json({
         user: useableUserData(response),
         accessToken: accessToken,
       });
     }
   } catch (e) {
-    console.log("e", e);
     res.status(400).json({ message: "Failed to make user" });
   }
 });
 router.post("/login", async (req, res) => {
   let { username, password } = req.body;
+  const user = await Users.findOne({ username });
   try {
-    const user = await Users.find({ $or: [{ username }, { email: username }] });
-    const response = user.filter((i) => i.uid)[0];
-    if (response.uid && bcrypt.compareSync(password, response.password)) {
-      const refreshToken = generateRefreshToken(response);
-      const accessToken = generateAccessToken(response);
+    if (bcrypt.compareSync(password, user.password)) {
+      const refreshToken = generateRefreshToken(user);
+      const accessToken = generateAccessToken(user);
       res.cookie("secret-cookie", refreshToken, { httpOnly: true });
-      res.status(200).json({
-        user: useableUserData(response),
+      return res.status(200).json({
+        user: useableUserData(user),
         accessToken: accessToken,
       });
+    } else {
+      return res.status(404).json({
+        message: "username or password are invalid",
+      });
     }
-  } catch (e) {
-    res.status(401).json({ message: "username or password are invalid " });
+  } catch {
+    return res.status(400).json({ message: "user does not exist" });
   }
 });
 
@@ -84,24 +86,20 @@ router.post("/refresh-token", async (req, res) => {
   let payload = null;
   if (!token) {
     // no cookie
-    res.status(400).json({ accessToken: "" });
+    return res.status(400).json({ accessToken: "" });
   }
-  try {
-    payload = jwt.verify(token, refreshTokenSecret);
-    const user = await Users.findOne({
-      $or: [{ username: payload.username }, { uid: payload.uid }],
-    });
-    if (!user) {
-      res.status(400).json({ accessToken: "" });
-    }
-    // token is valid and we send an access token
-    const refreshToken = generateRefreshToken(user);
-    const accessToken = generateAccessToken(user);
-    res.cookie("secret-cookie", refreshToken, { httpOnly: true });
-    res.status(200).json({ accessToken: accessToken });
-  } catch {
-    res.status(400).json({ accessToken: "" });
+  payload = jwt.verify(token, refreshTokenSecret);
+  const user = await Users.findOne({
+    $or: [{ username: payload.username }, { uid: payload.uid }],
+  });
+  if (!user) {
+    return res.status(400).json({ accessToken: "" });
   }
+  // token is valid and we send an access token
+  const refreshToken = generateRefreshToken(user);
+  const accessToken = generateAccessToken(user);
+  res.cookie("secret-cookie", refreshToken, { httpOnly: true });
+  res.status(200).json({ accessToken: accessToken });
 });
 
 module.exports = router;
