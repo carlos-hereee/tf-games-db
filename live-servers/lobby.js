@@ -19,14 +19,18 @@ const makeLobby = ({ player, gameName }, lobbyId) => {
   const newLobby = lobby.filter((room) => room.lobbyId === lobbyId)[0];
   return { lobby: newLobby };
 };
-const removePlayer = async (player) => {
-  console.log(player);
-  const lobbyIndex = lobby.findIndex((room) => console.log(room.lobbyId));
-  // const playerIndex = lobby[lobbyIndex].players?.findIndex(
-  //   (user) => user.uid === player.uid
-  // );
-  // const byebye = lobby[lobbyIndex].players.pop(playerIndex);
-  console.log(lobbyIndex);
-  // if (index !== -1)
+const joinLobby = async (lobbyId, player) => {
+  const lobbyIndex = lobby.findIndex((room) => room.lobbyId === lobbyId);
+  if (lobbyIndex !== -1) {
+    const addition = lobby[lobbyIndex].players.push(player);
+    return { addition };
+  }
 };
-module.exports = { findLobby, removePlayer, makeLobby };
+const removePlayer = async (player, lobbyId) => {
+  const lobbyIndex = lobby.findIndex((room) => room.lobbyId === lobbyId);
+  if (lobbyIndex !== -1) {
+    const removed = lobby[lobbyIndex].players.pop(player);
+    return { removed, game };
+  }
+};
+module.exports = { findLobby, removePlayer, makeLobby, joinLobby };

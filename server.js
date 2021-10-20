@@ -41,70 +41,27 @@ server.use("/users/", userRouter);
 
 // initialize socket for the server
 io.on("connection", (socket) => {
-  socket.on("leave", (player) => {
-    const { lobby } = removePlayer(player);
-    emitMessage(socket, player, `has left`);
-    //   emitGameData(socket, game, lobby, opponent, player);
+  const id = socket.handshake.query.id;
+  socket.join(id);
+  socket.on("send-message", (message) => {
+    socket.emit("receive-message", {
+      message: `joined lobby`,
+    });
   });
-  socket.on("join", async ({ player, gameName }) => {
-    // search for open lobby
-    const { lobby } = findLobby({ player, gameName });
-    if (!lobby) {
-      const lobbyId = uuidv4();
-
-      const { lobby } = makeLobby({ player, gameName }, lobbyId);
-      socket.join(lobby.lobbyId);
-      emitMessage(socket, { ...player, lobbyId }, "joined!");
+  console.log(`connection made on socket id : ${id}`);
+  socket.on("leave", ({ player, lobbyId }) => {
+    console.log("leave");
+    const { removed, game } = removePlayer(player, lobbyId);
+    if (removed) {
+      io.to(lobbyId).emit("message", {
+        player,
+        message: `${player.nickname} has left`,
+      });
+      io.to(lobbyId).emit("gameData", { game, lobby });
     }
-    if (lobby) {
-      socket.join(lobby.lobbyId);
-      emitMessage(socket, player, "joined!");
-    }
-
-    // if (lobby && !alreadyExists) {
-    //   console.log("\n\n", lobby, alreadyExists);
-    //   console.log(lobby);
-    //   const { updatedLobby, error } = await addPlayerToLobby(lobby, player);
-    //   emitMessage(socket, player, "joined the room");
-    //   // sanity check at least two players in the lobby
-    //   if (updatedLobby.players.length > 1) {
-    //     const opponent = lobby.players.filter(
-    //       (i) => i.uid !== player.uid && i.isPlaying
-    //     );
-    //     // create a new game state to play in
-    //     // const { newGame, error } = await createGame(lobby);
-    //     emitBroadcast(socket, lobby, "starting match!");
-    //     // start match
-    //     // emitGameData(socket, newGame, updatedLobby, opponent, player);
-    //   }
-    // }
-    // if (alreadyExists) {
-    //   socket.join(lobby.lobbyId);
-    //   emitMessage(socket, player, "joining lobby");
-    //   emitBroadcast(socket, lobby, `${player.nickname} joined`);
-    //   if (lobby.players.length > 1) {
-    //     const opponent = lobby.players
-    //       .filter((i) => i.uid !== player.uid && i.isPlaying)
-    //       .pop(0);
-    //     console.log("opponent", opponent);
-    //     emitBroadcast(socket, lobby, "starting match!");
-    //     // create a new game state to play in
-    //     // const { newGame, error } = await createGame(lobby);
-    //     // console.log(lobby.lobbyId);
-    //     // start match
-    //     // emitGameData(socket, newGame, updatedLobby, opponent, player);
-    //   }
-    // }
-    // // if (error) {
-    // //   // add user to a lobby and wait for other players to start matches
-    // //   const { newLobby } = await createNewLobby({ player, gameName }, socket);
-    // //   socket.join(newLobby.lobbyId);
-    // //   socket.emit("message", {
-    // //     id: uuidv4(),
-    // //     user: player,
-    // //     message: `${player?.nickname} joined the queue, ...searching for match`,
-    // //   });
-    // // }
+  });
+  socket.on("search-match", async (message) => {
+    console.log(message);
   });
 });
 // tesing server
