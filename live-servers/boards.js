@@ -57,4 +57,4 @@ const boards = {
   ],
 };
 
-module.exports = boards;
+module.exports = { boards };

@@ -1,36 +1,46 @@
 const { v4: uuidv4 } = require("uuid");
+const { boards } = require("./boards");
+const { createGameInstance } = require("./game");
 
-const lobby = [];
-const game = [];
-const findLobby = ({ gameName }) => {
-  const openLobby = lobby.find(
-    (room) => room.gameName === gameName && room.gameStarted === false
-  );
-  return { lobby: openLobby };
+const tickets = [];
+const findOpenQueue = (game) => {
+  const openTicket = tickets.filter(
+    (ticket) => ticket.gameName === game.gameName
+  )[0];
+  return { openTicket };
 };
-const makeLobby = ({ player, gameName }, lobbyId) => {
-  const data = {
-    gameName,
-    lobbyId,
-    opponentFound: false,
-    players: [{ ...player }],
+const createQueueTicket = (player, game) => {
+  try {
+    const data = {
+      uid: uuidv4(),
+      gameName: game.gameName,
+      lobbyId: player.lobbyId,
+      player: { nickname: player.nickname, uid: player.uid },
+    };
+    tickets.push(data);
+    return { success: true };
+  } catch {
+    return { success: false };
+  }
+};
+
+const updateTicketAndStartMatch = (ticket, opponent) => {
+  // create empty game board
+  const emptyGameBoard = {
+    gameName: ticket.gameName,
+    board: boards[ticket.gameName.toLowerCase()],
   };
-  lobby.push(data);
-  const newLobby = lobby.filter((room) => room.lobbyId === lobbyId)[0];
-  return { lobby: newLobby };
+  // populate player data
+  const playerData = { player1: ticket.player, player2: opponent };
+  const { game } = createGameInstance(emptyGameBoard, playerData);
+  // close the ticket
+  const index = tickets.findIndex((t) => t.uid === ticket.uid);
+  tickets.pop(index);
+  return { game };
 };
-const joinLobby = async (lobbyId, player) => {
-  const lobbyIndex = lobby.findIndex((room) => room.lobbyId === lobbyId);
-  if (lobbyIndex !== -1) {
-    const addition = lobby[lobbyIndex].players.push(player);
-    return { addition };
-  }
+
+module.exports = {
+  findOpenQueue,
+  createQueueTicket,
+  updateTicketAndStartMatch,
 };
-const removePlayer = async (player, lobbyId) => {
-  const lobbyIndex = lobby.findIndex((room) => room.lobbyId === lobbyId);
-  if (lobbyIndex !== -1) {
-    const removed = lobby[lobbyIndex].players.pop(player);
-    return { removed, game };
-  }
-};
-module.exports = { findLobby, removePlayer, makeLobby, joinLobby };

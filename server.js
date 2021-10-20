@@ -7,13 +7,20 @@ const helmet = require("helmet");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const userRouter = require("./routes/user-router.js");
-const { findLobby, removePlayer, makeLobby } = require("./live-servers/lobby");
+const {
+  removePlayer,
+  findOpenQueue,
+  createQueueTicket,
+  updateTicketAndStartMatch,
+} = require("./live-servers/lobby");
 const { createGame } = require("./live-servers/game");
 const { v4: uuidv4 } = require("uuid");
 const {
   emitMessage,
   emitGameData,
   emitBroadcast,
+  emitGameStart,
+  emitBroadcastGameStart,
 } = require("./live-servers/socketEmit.js");
 
 // CONNECT TO MONGOOSEDB
@@ -43,11 +50,6 @@ server.use("/users/", userRouter);
 io.on("connection", (socket) => {
   const id = socket.handshake.query.id;
   socket.join(id);
-  socket.on("send-message", (message) => {
-    socket.emit("receive-message", {
-      message: `joined lobby`,
-    });
-  });
   console.log(`connection made on socket id : ${id}`);
   socket.on("leave", ({ player, lobbyId }) => {
     console.log("leave");
@@ -60,8 +62,28 @@ io.on("connection", (socket) => {
       io.to(lobbyId).emit("gameData", { game, lobby });
     }
   });
-  socket.on("search-match", async (message) => {
-    console.log(message);
+  socket.on("search-match", async ({ player, game }) => {
+    // seach for open queue
+    const { openTicket } = findOpenQueue(game);
+    if (!openTicket) {
+      // add player to queue
+      const { success } = createQueueTicket(player, game);
+      if (success) {
+        emitMessage(socket, player, "joined the queue");
+      } else emitMessage(socket, player, "servers are down, try agian later");
+    }
+    if (openTicket) {
+      const { lobbyId } = openTicket;
+      // notify both players
+      socket.join(lobbyId);
+      emitMessage(socket, player, "Opponent found, starting match!");
+      emitBroadcast(socket, lobbyId, "Opponent found, starting match!");
+      // remove players from old queue and start game
+      const { game } = updateTicketAndStartMatch(openTicket, player);
+      // send both players the game data
+      emitGameStart(socket, game);
+      emitBroadcastGameStart(socket, lobbyId, game);
+    }
   });
 });
 // tesing server
