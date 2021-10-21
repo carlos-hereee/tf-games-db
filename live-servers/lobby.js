@@ -28,7 +28,7 @@ const updateTicketAndStartMatch = (ticket, opponent) => {
   // create empty game board
   const emptyGameBoard = {
     gameName: ticket.gameName,
-    board: boards[ticket.gameName.toLowerCase()],
+    board: boards[ticket.gameName],
   };
   // populate player data
   const playerData = { player1: ticket.player, player2: opponent };

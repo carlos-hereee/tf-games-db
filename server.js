@@ -13,7 +13,7 @@ const {
   createQueueTicket,
   updateTicketAndStartMatch,
 } = require("./live-servers/lobby");
-const { createGame } = require("./live-servers/game");
+const { findGame } = require("./live-servers/game");
 const { v4: uuidv4 } = require("uuid");
 const {
   emitMessage,
@@ -51,6 +51,8 @@ io.on("connection", (socket) => {
   const id = socket.handshake.query.id;
   socket.join(id);
   console.log(`connection made on socket id : ${id}`);
+  // check if player is already in game
+  // const { result } = findGame(player);
   socket.on("leave", ({ player, lobbyId }) => {
     console.log("leave");
     const { removed, game } = removePlayer(player, lobbyId);

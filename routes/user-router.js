@@ -83,12 +83,11 @@ router.post("/login", async (req, res) => {
 
 router.post("/refresh-token", async (req, res) => {
   const token = req.cookies["secret-cookie"];
-  let payload = null;
   if (!token) {
     // no cookie
     return res.status(400).json({ accessToken: "" });
   }
-  payload = jwt.verify(token, refreshTokenSecret);
+  let payload = jwt.verify(token, refreshTokenSecret);
   const user = await Users.findOne({
     $or: [{ username: payload.username }, { uid: payload.uid }],
   });
@@ -99,7 +98,7 @@ router.post("/refresh-token", async (req, res) => {
   const refreshToken = generateRefreshToken(user);
   const accessToken = generateAccessToken(user);
   res.cookie("secret-cookie", refreshToken, { httpOnly: true });
-  res.status(200).json({ accessToken: accessToken });
+  res.status(200).json({ accessToken: accessToken, user: { uid: user.uid } });
 });
 
 module.exports = router;
