@@ -85,7 +85,7 @@ io.on("connection", (socket) => {
       emitMessage(socket, player, "Opponent found, starting match!");
       emitBroadcast(socket, lobbyId, "Opponent found, starting match!");
       // remove players from old queue and start game
-      const { game } = updateTicketAndStartMatch(openTicket, player);
+      const { game } = updateTicketAndStartMatch(openTicket, player, lobbyId);
       // send both players the game data
       emitGameStart(socket, game);
       emitBroadcastGameStart(socket, game, lobbyId);

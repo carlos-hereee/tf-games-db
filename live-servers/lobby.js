@@ -4,17 +4,15 @@ const { createGameInstance } = require("./game");
 
 const tickets = [];
 const findOpenQueue = (game) => {
-  const openTicket = tickets.filter(
-    (ticket) => ticket.gameName === game.gameName
-  )[0];
+  const openTicket = tickets.filter((ticket) => ticket.gameName === game)[0];
   return { openTicket };
 };
-const createQueueTicket = (player, game) => {
+const createQueueTicket = (player, gameName) => {
   try {
     const data = {
       uid: uuidv4(),
-      gameName: game.gameName,
-      lobbyId: player.lobbyId,
+      gameName,
+      lobbyId: player.uid,
       player: { nickname: player.nickname, uid: player.uid },
     };
     tickets.push(data);
@@ -24,7 +22,7 @@ const createQueueTicket = (player, game) => {
   }
 };
 
-const updateTicketAndStartMatch = (ticket, opponent) => {
+const updateTicketAndStartMatch = (ticket, opponent, lobbyId) => {
   // create empty game board
   const emptyGameBoard = {
     gameName: ticket.gameName,
@@ -32,7 +30,7 @@ const updateTicketAndStartMatch = (ticket, opponent) => {
   };
   // populate player data
   const playerData = { player1: ticket.player, player2: opponent };
-  const { game } = createGameInstance(emptyGameBoard, playerData);
+  const { game } = createGameInstance(emptyGameBoard, playerData, lobbyId);
   // close the ticket
   const index = tickets.findIndex((t) => t.uid === ticket.uid);
   tickets.pop(index);
