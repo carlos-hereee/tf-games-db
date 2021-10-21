@@ -13,5 +13,14 @@ const createGameInstance = (board, players) => {
   games.push(game);
   return { game };
 };
-
-module.exports = { createGameInstance };
+const findGame = (id) => {
+  const res = games.filter(({ players }) => {
+    players.player1.uid === id || players.player2.uid === id;
+  })[0];
+  console.log(res);
+  if (res) {
+    return { result: res };
+  }
+  return { result: false };
+};
+module.exports = { createGameInstance, findGame };

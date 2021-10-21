@@ -52,7 +52,11 @@ io.on("connection", (socket) => {
   socket.join(id);
   console.log(`connection made on socket id : ${id}`);
   // check if player is already in game
-  // const { result } = findGame(player);
+  const { result } = findGame(id);
+  if (result) {
+    socket.join(result.lobbyId);
+    emitGameData(socket, result, result.lobbyId);
+  }
   socket.on("leave", ({ player, lobbyId }) => {
     console.log("leave");
     const { removed, game } = removePlayer(player, lobbyId);
@@ -84,7 +88,7 @@ io.on("connection", (socket) => {
       const { game } = updateTicketAndStartMatch(openTicket, player);
       // send both players the game data
       emitGameStart(socket, game);
-      emitBroadcastGameStart(socket, lobbyId, game);
+      emitBroadcastGameStart(socket, game, lobbyId);
     }
   });
 });
