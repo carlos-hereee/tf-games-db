@@ -13,7 +13,11 @@ const {
   createQueueTicket,
   updateTicketAndStartMatch,
 } = require("./live-servers/lobby");
-const { findGame } = require("./live-servers/game");
+const {
+  findGame,
+  updateGameboard,
+  checkVictory,
+} = require("./live-servers/game");
 const { v4: uuidv4 } = require("uuid");
 const {
   emitMessage,
@@ -90,6 +94,19 @@ io.on("connection", (socket) => {
       emitGameStart(socket, game);
       emitBroadcastGameStart(socket, game, lobbyId);
     }
+  });
+  socket.on("place-mark", ({ game, cell }) => {
+    // updated the game board
+    const { updatedGame, error } = updateGameboard(game, cell);
+    if (error) {
+      emitMessage(socket, { nickname: "Admin", uid: "silent-code" }, error);
+      emitBroadcast(socket, game.lobbyId, error);
+    }
+    const { results } = checkVictory(updatedGame);
+    // check for win
+    // check for draw
+
+    // swap turns
   });
 });
 // tesing server

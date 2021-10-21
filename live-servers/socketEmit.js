@@ -11,7 +11,7 @@ const emitMessage = (socket, player, message) =>
 const emitBroadcast = (socket, lobbyId, message) =>
   socket.broadcast.to(lobbyId).emit("receive-message", {
     id: uuidv4(),
-    player: { nickname: "Admin", uuid: "silent-code" },
+    player: { nickname: "Admin", uid: "silent-code" },
     message,
   });
 // send game data to self

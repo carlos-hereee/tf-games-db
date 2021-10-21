@@ -2,20 +2,18 @@ const games = [];
 const testgame = [
   {
     lobbyId: "31e46eb2-a63e-40af-8232-e1b4d2a591dc",
-    board: {
-      gameName: "tictactoe",
-      board: [
-        { positionX: 1, positionY: 1, isEmpty: true, content: "" },
-        { positionX: 1, positionY: 2, isEmpty: true, content: "" },
-        { positionX: 1, positionY: 3, isEmpty: true, content: "" },
-        { positionX: 2, positionY: 1, isEmpty: true, content: "" },
-        { positionX: 2, positionY: 2, isEmpty: true, content: "" },
-        { positionX: 2, positionY: 3, isEmpty: true, content: "" },
-        { positionX: 3, positionY: 1, isEmpty: true, content: "" },
-        { positionX: 3, positionY: 2, isEmpty: true, content: "" },
-        { positionX: 3, positionY: 3, isEmpty: true, content: "" },
-      ],
-    },
+    gameName: "tictactoe",
+    board: [
+      { positionX: 1, positionY: 1, isEmpty: true, content: "", uid: "11" },
+      { positionX: 1, positionY: 2, isEmpty: true, content: "", uid: "12" },
+      { positionX: 1, positionY: 3, isEmpty: true, content: "", uid: "13" },
+      { positionX: 2, positionY: 1, isEmpty: true, content: "", uid: "21" },
+      { positionX: 2, positionY: 2, isEmpty: true, content: "", uid: "22" },
+      { positionX: 2, positionY: 3, isEmpty: true, content: "", uid: "23" },
+      { positionX: 3, positionY: 1, isEmpty: true, content: "", uid: "31" },
+      { positionX: 3, positionY: 2, isEmpty: true, content: "", uid: "32" },
+      { positionX: 3, positionY: 3, isEmpty: true, content: "", uid: "33" },
+    ],
     players: {
       player1: {
         nickname: "steep rail",
@@ -56,4 +54,28 @@ const findGame = (id) => {
   }
   return { result: false };
 };
-module.exports = { createGameInstance, findGame };
+const updateGameboard = ({ board, turn, lobbyId }, cell) => {
+  try {
+    // TODO: switch to game array
+    const gtIdx = testgame.findIndex((game) => game.lobbyId === lobbyId);
+    const cellIdx = testgame[gtIdx].board.findIndex((r) => r.uid === cell.uid);
+    console.log(testgame[gtIdx].board[cellIdx]);
+    testgame[gtIdx].board[cellIdx] = {
+      ...testgame[gtIdx].board[cellIdx],
+      isEmpty: false,
+      content: turn,
+    };
+    return { updatedGame: testgame[gtIdx] };
+  } catch {
+    return { error: "there was an error updating game" };
+  }
+};
+const checkVictory = (gameToCheck) => {
+  console.log(gameToCheck);
+};
+module.exports = {
+  createGameInstance,
+  findGame,
+  updateGameboard,
+  checkVictory,
+};
