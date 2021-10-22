@@ -82,7 +82,7 @@ const checkVictory = ({ board, gameName, turn, turnCount }) => {
   if (turnCount > 8) return { result: "draw" };
   const { scoreBoard } = checkScoreBoard(board, gameName, turn);
   if (Object.values(scoreBoard).filter((item) => item === 3)[0]) {
-    return { result: "victory" };
+    return { result: turn };
   }
   return { result: "continue" };
 };

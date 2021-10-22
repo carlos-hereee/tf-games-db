@@ -26,6 +26,8 @@ const {
   emitGameStart,
   emitBroadcastGameStart,
   emitBroadcastGameData,
+  emitGameResults,
+  emitBroadcastGameResults,
 } = require("./live-servers/socketEmit.js");
 
 // CONNECT TO MONGOOSEDB
@@ -104,8 +106,10 @@ io.on("connection", (socket) => {
       emitMessage(socket, Admin, error);
       emitBroadcast(socket, game.lobbyId, error);
     }
-    // if (result !== "continue") {
-    // }
+    if (result !== "continue") {
+      emitGameResults(socket, result);
+      emitBroadcastGameResults(socket, result, updatedGame.lobbyId);
+    }
     emitGameData(socket, updatedGame, updatedGame.lobbyId);
     emitBroadcastGameData(socket, updatedGame, updatedGame.lobbyId);
   });

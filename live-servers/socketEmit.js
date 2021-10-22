@@ -24,7 +24,11 @@ const emitGameStart = (socket, game) => socket.emit("game-start", game);
 // send game data others not to self
 const emitBroadcastGameStart = (socket, game, lobbyId) =>
   socket.broadcast.to(lobbyId).emit("game-start", game);
-
+// send game result to self
+const emitGameResults = (socket, result) => socket.emit("game-results", result);
+// send game result to others
+const emitBroadcastGameResults = (socket, result, lobbyId) =>
+  socket.broadcast.to(lobbyId).emit("game-results", result);
 module.exports = {
   emitMessage,
   emitBroadcast,
@@ -32,4 +36,6 @@ module.exports = {
   emitGameStart,
   emitBroadcastGameData,
   emitBroadcastGameStart,
+  emitGameResults,
+  emitBroadcastGameResults,
 };
