@@ -16,11 +16,11 @@ const emitBroadcast = (socket, lobbyId, message) =>
   });
 // send game data to self
 const emitGameData = (socket, game) => socket.emit("game-data", game);
-// send game data to self
-const emitGameStart = (socket, game) => socket.emit("game-start", game);
 // send game data others not to self
 const emitBroadcastGameData = (socket, game, lobbyId) =>
   socket.broadcast.to(lobbyId).emit("game-data", game);
+// send game data to self
+const emitGameStart = (socket, game) => socket.emit("game-start", game);
 // send game data others not to self
 const emitBroadcastGameStart = (socket, game, lobbyId) =>
   socket.broadcast.to(lobbyId).emit("game-start", game);

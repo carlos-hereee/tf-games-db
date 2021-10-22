@@ -19,13 +19,13 @@ const {
   checkVictory,
   swapTurns,
 } = require("./live-servers/game");
-const { v4: uuidv4 } = require("uuid");
 const {
   emitMessage,
   emitGameData,
   emitBroadcast,
   emitGameStart,
   emitBroadcastGameStart,
+  emitBroadcastGameData,
 } = require("./live-servers/socketEmit.js");
 
 // CONNECT TO MONGOOSEDB
@@ -99,19 +99,15 @@ io.on("connection", (socket) => {
   });
   socket.on("place-mark", ({ game, cell }) => {
     // updated the game board
-    const { updatedGame, error } = updateGameboard(game, cell);
+    const { updatedGame, error, result } = updateGameboard(game, cell);
     if (error) {
       emitMessage(socket, Admin, error);
       emitBroadcast(socket, game.lobbyId, error);
     }
-    // check for win/draw/continuation
-    const { result } = checkVictory(updatedGame);
-    if (result === "continue") {
-      // swap turns
-      const { board } = swapTurns(updatedGame);
-      // send game data
-      emitGameData(socket, board, board.lobbyId);
-    }
+    // if (result !== "continue") {
+    // }
+    emitGameData(socket, updatedGame, updatedGame.lobbyId);
+    emitBroadcastGameData(socket, updatedGame, updatedGame.lobbyId);
   });
 });
 // tesing server
