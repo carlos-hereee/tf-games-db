@@ -1,3 +1,4 @@
+const { checkScoreBoard } = require("./combination");
 const games = [];
 const testgame = [
   {
@@ -54,12 +55,14 @@ const findGame = (id) => {
   }
   return { result: false };
 };
-const updateGameboard = ({ board, turn, lobbyId }, cell) => {
+const getGameIndex = (lobbyId) => {
+  return testgame.findIndex((game) => game.lobbyId === lobbyId);
+};
+const updateGameboard = ({ turn, lobbyId }, cell) => {
   try {
     // TODO: switch to game array
-    const gtIdx = testgame.findIndex((game) => game.lobbyId === lobbyId);
+    const gtIdx = getGameIndex(lobbyId);
     const cellIdx = testgame[gtIdx].board.findIndex((r) => r.uid === cell.uid);
-    console.log(testgame[gtIdx].board[cellIdx]);
     testgame[gtIdx].board[cellIdx] = {
       ...testgame[gtIdx].board[cellIdx],
       isEmpty: false,
@@ -70,12 +73,29 @@ const updateGameboard = ({ board, turn, lobbyId }, cell) => {
     return { error: "there was an error updating game" };
   }
 };
-const checkVictory = (gameToCheck) => {
-  console.log(gameToCheck);
+const checkVictory = ({ board, gameName, turn, turnCount }) => {
+  if (turnCount > 8) return { result: "draw" };
+  const { scoreBoard } = checkScoreBoard(board, gameName, turn);
+  if (Object.values(scoreBoard).filter((item) => item === 3)[0]) {
+    return { result: "victory" };
+  }
+  return { result: "continue" };
+};
+const swapTurns = ({ lobbyId }) => {
+  const idx = getGameIndex(lobbyId);
+  // swap turns
+  testgame[idx].turn === "player1"
+    ? (testgame[idx].turn = "player2")
+    : (testgame[idx].turn = "player1");
+  // update the turn count
+  testgame[idx].turnCount += 1;
+
+  return { board: testgame[idx] };
 };
 module.exports = {
   createGameInstance,
   findGame,
   updateGameboard,
   checkVictory,
+  swapTurns,
 };

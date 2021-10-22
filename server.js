@@ -17,6 +17,7 @@ const {
   findGame,
   updateGameboard,
   checkVictory,
+  swapTurns,
 } = require("./live-servers/game");
 const { v4: uuidv4 } = require("uuid");
 const {
@@ -30,6 +31,7 @@ const {
 // CONNECT TO MONGOOSEDB
 const uri = `mongodb+srv://${process.env.MONGOOSE_USERNAME}:${process.env.MONGOOSE_PASSWORD}@cluster0.9er2n.mongodb.net/take-five-db?retryWrites=true&w=majority`;
 
+const Admin = { nickname: "Admin", uid: "silent-code" };
 const port = process.env.PORT || 4937;
 const server = express();
 const httpServer = createServer(server);
@@ -99,14 +101,17 @@ io.on("connection", (socket) => {
     // updated the game board
     const { updatedGame, error } = updateGameboard(game, cell);
     if (error) {
-      emitMessage(socket, { nickname: "Admin", uid: "silent-code" }, error);
+      emitMessage(socket, Admin, error);
       emitBroadcast(socket, game.lobbyId, error);
     }
-    const { results } = checkVictory(updatedGame);
-    // check for win
-    // check for draw
-
-    // swap turns
+    // check for win/draw/continuation
+    const { result } = checkVictory(updatedGame);
+    if (result === "continue") {
+      // swap turns
+      const { board } = swapTurns(updatedGame);
+      // send game data
+      emitGameData(socket, board, board.lobbyId);
+    }
   });
 });
 // tesing server
