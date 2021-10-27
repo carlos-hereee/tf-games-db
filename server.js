@@ -16,8 +16,8 @@ const {
 const {
   findGame,
   updateGameboard,
-  checkVictory,
-  swapTurns,
+  updateRequestedRematch,
+  checkRematch,
 } = require("./live-servers/game");
 const {
   emitMessage,
@@ -28,6 +28,8 @@ const {
   emitBroadcastGameData,
   emitGameResults,
   emitBroadcastGameResults,
+  emitRematchMessage,
+  emitBroadcastRematchMessage,
 } = require("./live-servers/socketEmit.js");
 
 // CONNECT TO MONGOOSEDB
@@ -112,6 +114,34 @@ io.on("connection", (socket) => {
     }
     emitGameData(socket, updatedGame, updatedGame.lobbyId);
     emitBroadcastGameData(socket, updatedGame, updatedGame.lobbyId);
+  });
+  socket.on("request-rematch", ({ player, game }) => {
+    // update and wait for player response
+    const { response } = updateRequestedRematch(player, game);
+    if (response) {
+      const { success, resetGame } = checkRematch(game);
+      if (success) {
+        emitGameStart(socket, resetGame);
+        emitBroadcastGameStart(socket, resetGame, resetGame.lobbyId);
+        // notify players
+        emitRematchMessage(socket, "Starting match");
+        emitBroadcastRematchMessage(socket, "Starting match", game.lobbyId);
+      } else {
+        // notify players
+        emitRematchMessage(socket, "You requested a rematch");
+        emitBroadcastRematchMessage(
+          socket,
+          `${player.nickname} has requested a rematch`,
+          game.lobbyId
+        );
+      }
+    }
+    if (!response) {
+      emitRematchMessage(
+        socket,
+        "Unable to request rematch; opponent left the room"
+      );
+    }
   });
 });
 // tesing server
