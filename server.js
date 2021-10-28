@@ -18,6 +18,8 @@ const {
   updateGameboard,
   updateRequestedRematch,
   checkRematch,
+  resetGame,
+  swapTurns,
 } = require("./live-servers/game");
 const {
   emitMessage,
@@ -30,6 +32,8 @@ const {
   emitBroadcastGameResults,
   emitRematchMessage,
   emitBroadcastRematchMessage,
+  emitResetGame,
+  emitBroadcastResetGame,
 } = require("./live-servers/socketEmit.js");
 
 // CONNECT TO MONGOOSEDB
@@ -58,6 +62,7 @@ server.use("/users/", userRouter);
 
 // initialize socket for the server
 io.on("connection", (socket) => {
+  // TODO: MOVE TO AN EMPTY DIRECTORY
   const id = socket.handshake.query.id;
   socket.join(id);
   console.log(`connection made on socket id : ${id}`);
@@ -67,6 +72,7 @@ io.on("connection", (socket) => {
     socket.join(result.lobbyId);
     emitGameData(socket, result, result.lobbyId);
   }
+  // TODO: EMIT GAMESTART AND GAMEDATA ARE THE SAME FUNCTION
   socket.on("leave", ({ player, lobbyId }) => {
     console.log("leave");
     const { removed, game } = removePlayer(player, lobbyId);
@@ -79,7 +85,7 @@ io.on("connection", (socket) => {
     }
   });
   socket.on("search-match", async ({ player, game }) => {
-    // seach for open queue
+    // search for an open queue
     const { openTicket } = findOpenQueue(game);
     if (!openTicket) {
       // add player to queue
@@ -101,28 +107,34 @@ io.on("connection", (socket) => {
       emitBroadcastGameStart(socket, game, lobbyId);
     }
   });
-  socket.on("place-mark", ({ game, cell }) => {
+  socket.on("place-mark", ({ game, cell, player }) => {
     // updated the game board
-    const { updatedGame, error, result } = updateGameboard(game, cell);
-    if (error) {
-      emitMessage(socket, Admin, error);
-      emitBroadcast(socket, game.lobbyId, error);
+    const { updatedGame, result } = updateGameboard(game, cell, player);
+    if (result === "draw") {
+      emitGameResults(socket, "draw");
+      emitBroadcastGameResults(socket, "draw", updatedGame.lobbyId);
     }
-    if (result !== "continue") {
-      emitGameResults(socket, result);
-      emitBroadcastGameResults(socket, result, updatedGame.lobbyId);
+    if (result === "continue") {
+      const { board } = swapTurns(game.lobbyId);
+      emitGameData(socket, board, board.lobbyId);
+      emitBroadcastGameData(socket, board, board.lobbyId);
     }
-    emitGameData(socket, updatedGame, updatedGame.lobbyId);
-    emitBroadcastGameData(socket, updatedGame, updatedGame.lobbyId);
+    if (result && result !== "draw" && result !== "continue") {
+      const winner = result === player.uid ? "player1" : "player2";
+      emitGameResults(socket, winner);
+      emitBroadcastGameResults(socket, winner, updatedGame.lobbyId);
+    }
   });
   socket.on("request-rematch", ({ player, game }) => {
     // update and wait for player response
     const { response } = updateRequestedRematch(player, game);
     if (response) {
-      const { success, resetGame } = checkRematch(game);
+      const { success } = checkRematch(game);
       if (success) {
-        emitGameStart(socket, resetGame);
-        emitBroadcastGameStart(socket, resetGame, resetGame.lobbyId);
+        // reset game
+        const { reset } = resetGame(game);
+        emitResetGame(socket, reset);
+        emitBroadcastResetGame(socket, reset, reset.lobbyId);
         // notify players
         emitRematchMessage(socket, "Starting match");
         emitBroadcastRematchMessage(socket, "Starting match", game.lobbyId);

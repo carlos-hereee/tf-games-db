@@ -20,15 +20,17 @@ const testgame = [
       player1: {
         nickname: "steep rail",
         uid: "31e46eb2-a63e-40af-8232-e1b4d2a591dc",
+        rematch: false,
       },
       player2: {
         uid: "f9709bcd-067b-4067-8018-9c037123916d",
         nickname: "wooden harmony",
+        rematch: false,
       },
     },
     turn: "player1",
     turnCount: 0,
-    round: 0,
+    round: 1,
   },
 ];
 const createGameInstance = (board, players, lobbyId) => {
@@ -38,7 +40,6 @@ const createGameInstance = (board, players, lobbyId) => {
     players,
     turn: "player1",
     turnCount: 0,
-    status: "",
   };
   games.push(game);
   return { game };
@@ -59,35 +60,28 @@ const findGame = (id) => {
 const getGameIndex = (lobbyId) => {
   return testgame.findIndex((game) => game.lobbyId === lobbyId);
 };
-const updateGameboard = (game, cell) => {
-  const { board, gameName, turn, lobbyId, turnCount } = game;
-  try {
-    // TODO: switch to game array
-    const gtIdx = getGameIndex(lobbyId);
-    const cellIdx = testgame[gtIdx].board.findIndex((r) => r.uid === cell.uid);
-    testgame[gtIdx].board[cellIdx] = {
-      ...testgame[gtIdx].board[cellIdx],
-      isEmpty: false,
-      content: turn,
-    };
-    // check for win/draw/continuation
-    const { result } = checkVictory({ board, gameName, turn, turnCount });
-    // then swap turns
-    swapTurns({ lobbyId });
-    return { updatedGame: testgame[gtIdx], result };
-  } catch {
-    return { error: "there was an error updating game" };
-  }
+const updateGameboard = ({ lobbyId }, cell, player) => {
+  const idx = getGameIndex(lobbyId);
+  const cellIdx = testgame[idx].board.findIndex((c) => c.uid === cell.uid);
+  // update board
+  testgame[idx].board[cellIdx] = {
+    ...testgame[idx].board[cellIdx],
+    isEmpty: false,
+    content: player.uid,
+  };
+  const updatedGame = testgame[idx];
+  // check for win/draw/continuation
+  const { result } = checkVictory(updatedGame, player);
+  // then swap turns
+  return { updatedGame, result };
 };
-const checkVictory = ({ board, gameName, turn, turnCount }) => {
-  if (turnCount > 8) return { result: "draw" };
-  const { scoreBoard } = checkScoreBoard(board, gameName, turn);
-  if (Object.values(scoreBoard).filter((item) => item === 3)[0]) {
-    return { result: turn };
-  }
-  return { result: "continue" };
+const checkVictory = (game, player) => {
+  if (game.turnCount + 1 > 8) return { result: "draw" };
+  const { result } = checkScoreBoard(game.board, game.gameName, player);
+  // console.log(result);
+  return { result };
 };
-const swapTurns = ({ lobbyId }) => {
+const swapTurns = (lobbyId) => {
   const idx = getGameIndex(lobbyId);
   // swap turns
   testgame[idx].turn === "player1"
@@ -95,6 +89,7 @@ const swapTurns = ({ lobbyId }) => {
     : (testgame[idx].turn = "player1");
   // update the turn count
   testgame[idx].turnCount += 1;
+  return testgame[idx];
 };
 const updateRequestedRematch = (player, game) => {
   const idx = getGameIndex(game.lobbyId);
@@ -116,23 +111,26 @@ const checkRematch = ({ lobbyId }) => {
   // if both players request rematch
   const { player1, player2 } = testgame[idx].players;
   if (player2.rematch && player1.rematch) {
-    const player1 = testgame[idx].players.player1;
-    const player2 = testgame[idx].players.player2;
-    // which swap players position so x is o and o is x
-    testgame[idx].players.player1 = player2;
-    testgame[idx].players.player2 = player1;
-    // reset board
-    testgame[idx].board = boards[testgame[idx].gameName];
-    testgame[idx].turnCount = 0;
-    testgame[idx].round += 1;
-    testgame[idx].turn = "player1";
-    testgame[idx].players.player1.rematch = false;
-    testgame[idx].players.player2.rematch = false;
-
-    return { success: true, resetGame: testgame[idx] };
+    return { success: true };
   }
   return { success: false };
 };
+const resetGame = ({ lobbyId }) => {
+  const idx = getGameIndex(lobbyId);
+  const { player1, player2 } = testgame[idx].players;
+  // which swap players position so x is o and o is x
+  testgame[idx].players.player1 = player2;
+  testgame[idx].players.player2 = player1;
+  // reset board
+  testgame[idx].board = boards[testgame[idx].gameName];
+  testgame[idx].turnCount = 0;
+  testgame[idx].round += 1;
+  testgame[idx].turn = "player1";
+  testgame[idx].players.player1.rematch = false;
+  testgame[idx].players.player2.rematch = false;
+  return { reset: testgame[idx] };
+};
+
 module.exports = {
   createGameInstance,
   findGame,
@@ -141,4 +139,5 @@ module.exports = {
   swapTurns,
   updateRequestedRematch,
   checkRematch,
+  resetGame,
 };

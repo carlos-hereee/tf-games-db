@@ -1,14 +1,20 @@
 const wincon = require("./wincondition");
-const checkScoreBoard = (baord, gameName, turn) => {
-  const scoreBoard = wincon[gameName];
+const checkScoreBoard = (baord, gameName, player) => {
+  /**
+   *  TODO: FIXBUG - SOME COMBINATIONS THAT ARE NOT WINNNG RETURN
+   *  A WINNING RESUTL
+   */
+  let scoreBoard = wincon[gameName];
+  // update the scoreboard
   baord.forEach((cell) => {
-    if (!cell.isEmpty && cell.content === turn) {
-      if (cell.positionX === 1) scoreBoard.x1 += 1;
-      if (cell.positionX === 2) scoreBoard.x2 += 1;
-      if (cell.positionX === 3) scoreBoard.x3 += 1;
-      if (cell.positionY === 1) scoreBoard.y1 += 1;
-      if (cell.positionY === 2) scoreBoard.y2 += 1;
-      if (cell.positionY === 3) scoreBoard.y3 += 1;
+    if (!cell.isEmpty && cell.content === player.uid) {
+      // for each row
+      if (cell.positionX === 1) scoreBoard.positionX1 += 1;
+      if (cell.positionX === 2) scoreBoard.positionX2 += 1;
+      if (cell.positionX === 3) scoreBoard.positionX3 += 1;
+      if (cell.positionY === 1) scoreBoard.positionY1 += 1;
+      if (cell.positionY === 2) scoreBoard.positionY2 += 1;
+      if (cell.positionY === 3) scoreBoard.positionY3 += 1;
       // top to bottom diagnol corners
       if (
         (cell.positionX === 1 && cell.positionY === 1) ||
@@ -27,6 +33,10 @@ const checkScoreBoard = (baord, gameName, turn) => {
       }
     }
   });
-  return { scoreBoard };
+  if (Object.values(scoreBoard).filter((item) => item === 3)[0]) {
+    console.log(scoreBoard);
+    return { result: player.uid };
+  }
+  return { result: "continue" };
 };
 module.exports = { checkScoreBoard };
