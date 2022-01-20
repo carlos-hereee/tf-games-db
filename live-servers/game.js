@@ -45,13 +45,10 @@ const createGameInstance = (board, players, lobbyId) => {
   return { game };
 };
 const findGame = (id) => {
-  // for testing purpose
+  // find player within the list of games
   const res = testgame.filter(({ players }) => {
-    return players.player1.uid || players.player2.uid === id;
+    return players.player1.uid === id || players.player2.uid === id;
   })[0];
-  // const res = games.filter(({ players }) => {
-  //   players.player1.uid === id || players.player2.uid === id;
-  // })[0];
   if (res) {
     return { result: res };
   }

@@ -39,7 +39,6 @@ const {
 // CONNECT TO MONGOOSEDB
 const uri = `mongodb+srv://${process.env.MONGOOSE_USERNAME}:${process.env.MONGOOSE_PASSWORD}@cluster0.9er2n.mongodb.net/take-five-db?retryWrites=true&w=majority`;
 
-const Admin = { nickname: "Admin", uid: "silent-code" };
 const port = process.env.PORT || 4937;
 const server = express();
 const httpServer = createServer(server);
@@ -61,17 +60,21 @@ server.use(express.json());
 server.use("/users/", userRouter);
 
 // initialize socket for the server
+// TODO: MOVE TO AN EMPTY DIRECTORY
 io.on("connection", (socket) => {
-  // TODO: MOVE TO AN EMPTY DIRECTORY
-  const id = socket.handshake.query.id;
-  socket.join(id);
-  console.log(`connection made on socket id : ${id}`);
-  // check if player is already in game
-  const { result } = findGame(id);
-  if (result) {
+  const playerId = socket.handshake.query.id;
+  if (playerId) {
+    socket.join(playerId);
+    console.log(`connection made on socket id : ${playerId}`);
+  }
+  // check if player is already in a game
+  const { result } = findGame(playerId);
+  if (result.lobbyId) {
+    // send player to game
     socket.join(result.lobbyId);
     emitGameData(socket, result, result.lobbyId);
   }
+
   // TODO: EMIT GAMESTART AND GAMEDATA ARE THE SAME FUNCTION
   socket.on("leave", ({ player, lobbyId }) => {
     console.log("leave");
