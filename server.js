@@ -113,6 +113,7 @@ io.on("connection", (socket) => {
   socket.on("place-mark", ({ game, cell, player }) => {
     // updated the game board
     const { updatedGame, result } = updateGameboard(game, cell, player);
+    // check for win
     if (result === "draw") {
       emitGameResults(socket, "draw");
       emitBroadcastGameResults(socket, "draw", updatedGame.lobbyId);
@@ -122,7 +123,7 @@ io.on("connection", (socket) => {
       emitGameData(socket, board, board.lobbyId);
       emitBroadcastGameData(socket, board, board.lobbyId);
     }
-    if (result && result !== "draw" && result !== "continue") {
+    if (result !== "draw" && result !== "continue") {
       const winner = result === player.uid ? "player1" : "player2";
       emitGameResults(socket, winner);
       emitBroadcastGameResults(socket, winner, updatedGame.lobbyId);
