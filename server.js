@@ -72,7 +72,7 @@ io.on("connection", (socket) => {
   if (result.lobbyId) {
     // send player to game
     socket.join(result.lobbyId);
-    emitGameData(socket, result, result.lobbyId);
+    emitGameStart(socket, result);
   }
 
   // TODO: EMIT GAMESTART AND GAMEDATA ARE THE SAME FUNCTION
@@ -117,13 +117,10 @@ io.on("connection", (socket) => {
     if (result === "draw") {
       emitGameResults(socket, "draw");
       emitBroadcastGameResults(socket, "draw", updatedGame.lobbyId);
-    }
-    if (result === "continue") {
+    } else if (result === "continue") {
       const { board } = swapTurns(game.lobbyId);
-      emitGameData(socket, board, board.lobbyId);
-      emitBroadcastGameData(socket, board, board.lobbyId);
-    }
-    if (result !== "draw" && result !== "continue") {
+      emitGameData(socket, board, game.lobbyId);
+    } else if (result !== "draw" && result !== "continue") {
       const winner = result === player.uid ? "player1" : "player2";
       emitGameResults(socket, winner);
       emitBroadcastGameResults(socket, winner, updatedGame.lobbyId);
