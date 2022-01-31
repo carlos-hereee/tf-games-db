@@ -118,8 +118,7 @@ io.on("connection", (socket) => {
       emitGameResults(socket, "draw");
       emitBroadcastGameResults(socket, "draw", updatedGame.lobbyId);
     } else if (result === "continue") {
-      const { board } = swapTurns(game.lobbyId);
-      emitGameData(socket, board, game.lobbyId);
+      emitGameData(socket, updatedGame, game.lobbyId);
     } else if (result !== "draw" && result !== "continue") {
       const winner = result === player.uid ? "player1" : "player2";
       emitGameResults(socket, winner);

@@ -66,12 +66,11 @@ const updateGameboard = ({ lobbyId }, cell, player) => {
     isEmpty: false,
     content: player.uid,
   };
-  const updatedGame = testgame[idx];
   // swap turns
   swapTurns(lobbyId);
+  const updatedGame = testgame[idx];
   // check for win/draw/continuation
   const { result } = checkVictory(updatedGame, player);
-  console.log(result);
   return { updatedGame, result };
 };
 const checkVictory = (game, player) => {
