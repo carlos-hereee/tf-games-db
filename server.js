@@ -19,7 +19,6 @@ const {
   updateRequestedRematch,
   checkRematch,
   resetGame,
-  swapTurns,
 } = require("./live-servers/game");
 const {
   emitMessage,
@@ -27,9 +26,7 @@ const {
   emitBroadcast,
   emitGameStart,
   emitBroadcastGameStart,
-  emitBroadcastGameData,
   emitGameResults,
-  emitBroadcastGameResults,
   emitRematchMessage,
   emitBroadcastRematchMessage,
   emitResetGame,
@@ -113,16 +110,10 @@ io.on("connection", (socket) => {
   socket.on("place-mark", ({ game, cell, player }) => {
     // updated the game board
     const { updatedGame, result } = updateGameboard(game, cell, player);
+    emitGameData(socket, updatedGame, game.lobbyId);
     // check for win
-    if (result === "draw") {
-      emitGameResults(socket, "draw");
-      emitBroadcastGameResults(socket, "draw", updatedGame.lobbyId);
-    } else if (result === "continue") {
-      emitGameData(socket, updatedGame, game.lobbyId);
-    } else if (result !== "draw" && result !== "continue") {
-      const winner = result === player.uid ? "player1" : "player2";
-      emitGameResults(socket, winner);
-      emitBroadcastGameResults(socket, winner, updatedGame.lobbyId);
+    if (result === "win" || result === "draw") {
+      emitGameResults(socket, game.lobbyId, result);
     }
   });
   socket.on("request-rematch", ({ player, game }) => {

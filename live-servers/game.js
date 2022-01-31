@@ -1,4 +1,4 @@
-const { checkScoreBoard } = require("./combination");
+const { checkVictory } = require("./combination");
 const { boards } = require("./boards");
 const games = [];
 const testgame = [
@@ -6,15 +6,15 @@ const testgame = [
     lobbyId: "31e46eb2-a63e-40af-8232-e1b4d2a591dc",
     gameName: "tictactoe",
     board: [
-      { positionX: 1, positionY: 1, isEmpty: true, content: "", uid: "11" },
-      { positionX: 1, positionY: 2, isEmpty: true, content: "", uid: "12" },
-      { positionX: 1, positionY: 3, isEmpty: true, content: "", uid: "13" },
-      { positionX: 2, positionY: 1, isEmpty: true, content: "", uid: "21" },
-      { positionX: 2, positionY: 2, isEmpty: true, content: "", uid: "22" },
-      { positionX: 2, positionY: 3, isEmpty: true, content: "", uid: "23" },
-      { positionX: 3, positionY: 1, isEmpty: true, content: "", uid: "31" },
-      { positionX: 3, positionY: 2, isEmpty: true, content: "", uid: "32" },
-      { positionX: 3, positionY: 3, isEmpty: true, content: "", uid: "33" },
+      { x: 1, y: 1, isEmpty: true, content: "", uid: "11" },
+      { x: 1, y: 2, isEmpty: true, content: "", uid: "12" },
+      { x: 1, y: 3, isEmpty: true, content: "", uid: "13" },
+      { x: 2, y: 1, isEmpty: true, content: "", uid: "21" },
+      { x: 2, y: 2, isEmpty: true, content: "", uid: "22" },
+      { x: 2, y: 3, isEmpty: true, content: "", uid: "23" },
+      { x: 3, y: 1, isEmpty: true, content: "", uid: "31" },
+      { x: 3, y: 2, isEmpty: true, content: "", uid: "32" },
+      { x: 3, y: 3, isEmpty: true, content: "", uid: "33" },
     ],
     players: {
       player1: {
@@ -68,16 +68,12 @@ const updateGameboard = ({ lobbyId }, cell, player) => {
   };
   // swap turns
   swapTurns(lobbyId);
-  const updatedGame = testgame[idx];
-  // check for win/draw/continuation
-  const { result } = checkVictory(updatedGame, player);
-  return { updatedGame, result };
-};
-const checkVictory = (game, player) => {
-  if (game.turnCount + 1 > 8) return { result: "draw" };
-  const { result } = checkScoreBoard(game.board, game.gameName, player);
-  // console.log(result);
-  return { result };
+  const { board, turnCount } = testgame[idx];
+  // return backupdated board and scoreboard tally
+  return {
+    updatedGame: testgame[idx],
+    result: checkVictory(board, player, turnCount),
+  };
 };
 const swapTurns = (lobbyId) => {
   const idx = getGameIndex(lobbyId);
