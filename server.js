@@ -27,9 +27,7 @@ const {
   emitBroadcastGameStart,
   emitGameResults,
   emitRematchMessage,
-  emitBroadcastRematchMessage,
   emitResetGame,
-  emitBroadcastResetGame,
 } = require("./live-servers/socketEmit.js");
 
 // CONNECT TO MONGOOSEDB
@@ -117,12 +115,12 @@ io.on("connection", (socket) => {
   });
   socket.on("request-rematch", ({ player, game, isPlayer1 }) => {
     const { players } = requestRematch(game, isPlayer1);
-    if (players.player2.rematch === true && players.player1.rematch === true) {
+    if (players.player2.rematch && players.player1.rematch) {
       const { reset } = resetGame(game);
       // send reset game to both player
       emitResetGame(socket, reset);
     } else {
-      emitRematchMessage(socket, game, isPlayer1);
+      emitRematchMessage(socket, game, players, isPlayer1);
     }
   });
 });

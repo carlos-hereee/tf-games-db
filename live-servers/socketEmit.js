@@ -34,23 +34,19 @@ const emitGameResults = (socket, roomId, result) => {
 };
 
 // send rematch
-const emitRematchMessage = (socket, game, isPlayer1) => {
-  socket.emit(
-    "rematch-response",
-    `${
-      isPlayer1 ? game.players.player1.nickname : game.players.player2.nickname
-    } requested rematch`
-  );
-  socket.broadcast
-    .to(game.lobbyId)
-    .emit(
-      "rematch-response",
-      `${
-        isPlayer1
-          ? game.players.player1.nickname
-          : game.players.player2.nickname
-      } requested rematch`
-    );
+const emitRematchMessage = (socket, game, players, isPlayer1) => {
+  socket.emit("rematch-response", {
+    message: `${
+      isPlayer1 ? players.player1.nickname : players.player2.nickname
+    } requested rematch`,
+    players,
+  });
+  socket.broadcast.to(game.lobbyId).emit("rematch-response", {
+    message: `${
+      isPlayer1 ? players.player1.nickname : players.player2.nickname
+    } requested rematch`,
+    players,
+  });
 };
 // send rematch notice to self
 const emitResetGame = (socket, game) => {
