@@ -16,8 +16,7 @@ const {
 const {
   findGame,
   updateGameboard,
-  updateRequestedRematch,
-  checkRematch,
+  requestRematch,
   resetGame,
 } = require("./live-servers/game");
 const {
@@ -116,34 +115,14 @@ io.on("connection", (socket) => {
       emitGameResults(socket, game.lobbyId, result);
     }
   });
-  socket.on("request-rematch", ({ player, game }) => {
-    // update and wait for player response
-    const { response } = updateRequestedRematch(player, game);
-    if (response) {
-      const { success } = checkRematch(game);
-      if (success) {
-        // reset game
-        const { reset } = resetGame(game);
-        emitResetGame(socket, reset);
-        emitBroadcastResetGame(socket, reset, reset.lobbyId);
-        // notify players
-        emitRematchMessage(socket, "Starting match");
-        emitBroadcastRematchMessage(socket, "Starting match", game.lobbyId);
-      } else {
-        // notify players
-        emitRematchMessage(socket, "You requested a rematch");
-        emitBroadcastRematchMessage(
-          socket,
-          `${player.nickname} has requested a rematch`,
-          game.lobbyId
-        );
-      }
-    }
-    if (!response) {
-      emitRematchMessage(
-        socket,
-        "Unable to request rematch; opponent left the room"
-      );
+  socket.on("request-rematch", ({ player, game, isPlayer1 }) => {
+    const { players } = requestRematch(game, isPlayer1);
+    if (players.player2.rematch === true && players.player1.rematch === true) {
+      const { reset } = resetGame(game);
+      // send reset game to both player
+      emitResetGame(socket, reset);
+    } else {
+      emitRematchMessage(socket, game, isPlayer1);
     }
   });
 });

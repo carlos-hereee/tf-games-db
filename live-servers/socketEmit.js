@@ -33,18 +33,30 @@ const emitGameResults = (socket, roomId, result) => {
   });
 };
 
+// send rematch
+const emitRematchMessage = (socket, game, isPlayer1) => {
+  socket.emit(
+    "rematch-response",
+    `${
+      isPlayer1 ? game.players.player1.nickname : game.players.player2.nickname
+    } requested rematch`
+  );
+  socket.broadcast
+    .to(game.lobbyId)
+    .emit(
+      "rematch-response",
+      `${
+        isPlayer1
+          ? game.players.player1.nickname
+          : game.players.player2.nickname
+      } requested rematch`
+    );
+};
 // send rematch notice to self
-const emitRematchMessage = (socket, result) =>
-  socket.emit("rematch-response", result);
-// send rematch notice to others
-const emitBroadcastRematchMessage = (socket, result, roomId) =>
-  socket.broadcast.to(roomId).emit("rematch-response", result);
-// send rematch notice to self
-const emitResetGame = (socket, result) =>
-  socket.emit("game-reset-response", result);
-// send rematch notice to others
-const emitBroadcastResetGame = (socket, result, roomId) =>
-  socket.broadcast.to(roomId).emit("game-reset-response", result);
+const emitResetGame = (socket, game) => {
+  socket.emit("game-reset-response", game);
+  socket.broadcast.to(game.lobbyId).emit("game-reset-response", game);
+};
 
 module.exports = {
   emitMessage,
@@ -54,7 +66,5 @@ module.exports = {
   emitBroadcastGameStart,
   emitGameResults,
   emitRematchMessage,
-  emitBroadcastRematchMessage,
   emitResetGame,
-  emitBroadcastResetGame,
 };

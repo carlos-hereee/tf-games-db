@@ -85,30 +85,7 @@ const swapTurns = (lobbyId) => {
   testgame[idx].turnCount += 1;
   return testgame[idx];
 };
-const updateRequestedRematch = (player, game) => {
-  const idx = getGameIndex(game.lobbyId);
-  const isPlayer1 = testgame[idx].players.player1.uid === player.uid;
-  const isPlayer2 = testgame[idx].players.player2.uid === player.uid;
-  // if opponent has not left the game
-  if (isPlayer1 && testgame[idx].players.player2.uid) {
-    testgame[idx].players.player1.rematch = true;
-    return { response: true };
-  }
-  if (isPlayer2 && testgame[idx].players.player1.uid) {
-    testgame[idx].players.player2.rematch = true;
-    return { response: true };
-  }
-  return { response: false };
-};
-const checkRematch = ({ lobbyId }) => {
-  const idx = getGameIndex(lobbyId);
-  // if both players request rematch
-  const { player1, player2 } = testgame[idx].players;
-  if (player2.rematch && player1.rematch) {
-    return { success: true };
-  }
-  return { success: false };
-};
+
 const resetGame = ({ lobbyId }) => {
   const idx = getGameIndex(lobbyId);
   const { player1, player2 } = testgame[idx].players;
@@ -124,6 +101,14 @@ const resetGame = ({ lobbyId }) => {
   testgame[idx].players.player2.rematch = false;
   return { reset: testgame[idx] };
 };
+const requestRematch = (game, isPlayer1) => {
+  const idx = getGameIndex(game.lobbyId);
+  isPlayer1
+    ? (testgame[idx].players.player1.rematch = true)
+    : (testgame[idx].players.player2.rematch = true);
+
+  return { players: testgame[idx].players };
+};
 
 module.exports = {
   createGameInstance,
@@ -131,7 +116,6 @@ module.exports = {
   updateGameboard,
   checkVictory,
   swapTurns,
-  updateRequestedRematch,
-  checkRematch,
   resetGame,
+  requestRematch,
 };
