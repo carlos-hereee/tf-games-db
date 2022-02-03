@@ -1,5 +1,5 @@
 const { checkVictory } = require("./combination");
-const { boards } = require("./boards");
+const boards = require("./boards");
 const games = [];
 const testgame = [
   {
@@ -88,17 +88,24 @@ const swapTurns = (lobbyId) => {
 
 const resetGame = ({ lobbyId }) => {
   const idx = getGameIndex(lobbyId);
+  let newBoard = boards[testgame[idx].gameName].map((i) => {
+    if (!i.isEmpty || i.content) {
+      return { ...i, isEmpty: true, content: "" };
+    }
+    return i;
+  });
   const { player1, player2 } = testgame[idx].players;
   // which swap players position so x is o and o is x
   testgame[idx].players.player1 = player2;
   testgame[idx].players.player2 = player1;
   // reset board
-  testgame[idx].board = boards[testgame[idx].gameName];
+  testgame[idx].board = newBoard;
   testgame[idx].turnCount = 0;
   testgame[idx].round += 1;
   testgame[idx].turn = "player1";
   testgame[idx].players.player1.rematch = false;
   testgame[idx].players.player2.rematch = false;
+
   return { reset: testgame[idx] };
 };
 const requestRematch = (game, isPlayer1) => {
