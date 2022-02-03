@@ -38,13 +38,13 @@ const emitRematchMessage = (socket, game, players, isPlayer1) => {
   socket.emit("rematch-response", {
     message: `${
       isPlayer1 ? players.player1.nickname : players.player2.nickname
-    } requested rematch`,
+    } ${players.player1.rematch ? "requested" : "canceled"} rematch`,
     players,
   });
   socket.broadcast.to(game.lobbyId).emit("rematch-response", {
     message: `${
       isPlayer1 ? players.player1.nickname : players.player2.nickname
-    } requested rematch`,
+    } ${players.player1.rematch ? "requested" : "canceled"} rematch`,
     players,
   });
 };

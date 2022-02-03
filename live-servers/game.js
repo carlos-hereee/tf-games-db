@@ -104,8 +104,10 @@ const resetGame = ({ lobbyId }) => {
 const requestRematch = (game, isPlayer1) => {
   const idx = getGameIndex(game.lobbyId);
   isPlayer1
-    ? (testgame[idx].players.player1.rematch = true)
-    : (testgame[idx].players.player2.rematch = true);
+    ? (testgame[idx].players.player1.rematch =
+        !testgame[idx].players.player1.rematch)
+    : (testgame[idx].players.player2.rematch =
+        !testgame[idx].players.player2.rematch);
 
   return { players: testgame[idx].players };
 };
