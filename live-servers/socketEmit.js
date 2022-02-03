@@ -1,29 +1,29 @@
 const { v4: uuidv4 } = require("uuid");
 
 // send message to self
-const emitMessage = (socket, player, message) =>
+const emitMessage = (socket, player, message, roomId) => {
   socket.emit("receive-message", {
     id: uuidv4(),
     player,
     message: `${player?.nickname} ${message}`,
   });
-// send message to others not self
-const emitBroadcast = (socket, roomId, message) =>
   socket.broadcast.to(roomId).emit("receive-message", {
     id: uuidv4(),
     player: { nickname: "Admin", uid: "silent-code" },
     message,
   });
+};
+
 // send game data to client
 const emitGameData = (socket, game, roomId) => {
   socket.emit("game-data", game);
   socket.broadcast.to(roomId).emit("game-data", game);
 };
 // send game data to self
-const emitGameStart = (socket, game) => socket.emit("game-start", game);
-// send game data others not to self
-const emitBroadcastGameStart = (socket, game, roomId) =>
-  socket.broadcast.to(roomId).emit("game-start", game);
+const emitGameStart = (socket, game) => {
+  socket.emit("game-start", game);
+  socket.broadcast.to(game.lobbyId).emit("game-start", game);
+};
 // send game result
 const emitGameResults = (socket, roomId, result) => {
   socket.emit("game-results", { result });
@@ -56,10 +56,8 @@ const emitResetGame = (socket, game) => {
 
 module.exports = {
   emitMessage,
-  emitBroadcast,
   emitGameData,
   emitGameStart,
-  emitBroadcastGameStart,
   emitGameResults,
   emitRematchMessage,
   emitResetGame,

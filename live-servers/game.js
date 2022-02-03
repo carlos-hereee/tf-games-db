@@ -1,42 +1,10 @@
 const { checkVictory } = require("./combination");
 const boards = require("./boards");
 const games = [];
-const testgame = [
-  {
-    lobbyId: "31e46eb2-a63e-40af-8232-e1b4d2a591dc",
-    gameName: "tictactoe",
-    board: [
-      { x: 1, y: 1, isEmpty: true, content: "", uid: "11" },
-      { x: 1, y: 2, isEmpty: true, content: "", uid: "12" },
-      { x: 1, y: 3, isEmpty: true, content: "", uid: "13" },
-      { x: 2, y: 1, isEmpty: true, content: "", uid: "21" },
-      { x: 2, y: 2, isEmpty: true, content: "", uid: "22" },
-      { x: 2, y: 3, isEmpty: true, content: "", uid: "23" },
-      { x: 3, y: 1, isEmpty: true, content: "", uid: "31" },
-      { x: 3, y: 2, isEmpty: true, content: "", uid: "32" },
-      { x: 3, y: 3, isEmpty: true, content: "", uid: "33" },
-    ],
-    players: {
-      player1: {
-        nickname: "steep rail",
-        uid: "31e46eb2-a63e-40af-8232-e1b4d2a591dc",
-        rematch: false,
-      },
-      player2: {
-        uid: "f9709bcd-067b-4067-8018-9c037123916d",
-        nickname: "wooden harmony",
-        rematch: false,
-      },
-    },
-    turn: "player1",
-    turnCount: 0,
-    round: 1,
-  },
-];
-const createGameInstance = (board, players, lobbyId) => {
+
+const createGameInstance = (board, players) => {
   const game = {
-    lobbyId,
-    board,
+    ...board,
     players,
     turn: "player1",
     turnCount: 0,
@@ -46,7 +14,7 @@ const createGameInstance = (board, players, lobbyId) => {
 };
 const findGame = (id) => {
   // find player within the list of games
-  const res = testgame.filter(({ players }) => {
+  const res = games.filter(({ players }) => {
     return players.player1.uid === id || players.player2.uid === id;
   })[0];
   if (res) {
@@ -55,68 +23,67 @@ const findGame = (id) => {
   return { result: false };
 };
 const getGameIndex = (lobbyId) => {
-  return testgame.findIndex((game) => game.lobbyId === lobbyId);
+  return games.findIndex((game) => game.lobbyId === lobbyId);
 };
 const updateGameboard = ({ lobbyId }, cell, player) => {
   const idx = getGameIndex(lobbyId);
-  const cellIdx = testgame[idx].board.findIndex((c) => c.uid === cell.uid);
+  const cellIdx = games[idx].board.findIndex((c) => c.uid === cell.uid);
   // update board
-  testgame[idx].board[cellIdx] = {
-    ...testgame[idx].board[cellIdx],
+  games[idx].board[cellIdx] = {
+    ...games[idx].board[cellIdx],
     isEmpty: false,
     content: player.uid,
   };
   // swap turns
   swapTurns(lobbyId);
-  const { board, turnCount } = testgame[idx];
+  const { board, turnCount } = games[idx];
   // return backupdated board and scoreboard tally
   return {
-    updatedGame: testgame[idx],
+    updatedGame: games[idx],
     result: checkVictory(board, player, turnCount),
   };
 };
 const swapTurns = (lobbyId) => {
   const idx = getGameIndex(lobbyId);
   // swap turns
-  testgame[idx].turn === "player1"
-    ? (testgame[idx].turn = "player2")
-    : (testgame[idx].turn = "player1");
+  games[idx].turn === "player1"
+    ? (games[idx].turn = "player2")
+    : (games[idx].turn = "player1");
   // update the turn count
-  testgame[idx].turnCount += 1;
-  return testgame[idx];
+  games[idx].turnCount += 1;
+  return games[idx];
 };
 
 const resetGame = ({ lobbyId }) => {
   const idx = getGameIndex(lobbyId);
-  let newBoard = boards[testgame[idx].gameName].map((i) => {
+  let newBoard = boards[games[idx].gameName].map((i) => {
     if (!i.isEmpty || i.content) {
       return { ...i, isEmpty: true, content: "" };
     }
     return i;
   });
-  const { player1, player2 } = testgame[idx].players;
+  const { player1, player2 } = games[idx].players;
   // which swap players position so x is o and o is x
-  testgame[idx].players.player1 = player2;
-  testgame[idx].players.player2 = player1;
+  games[idx].players.player1 = player2;
+  games[idx].players.player2 = player1;
   // reset board
-  testgame[idx].board = newBoard;
-  testgame[idx].turnCount = 0;
-  testgame[idx].round += 1;
-  testgame[idx].turn = "player1";
-  testgame[idx].players.player1.rematch = false;
-  testgame[idx].players.player2.rematch = false;
+  games[idx].board = newBoard;
+  games[idx].turnCount = 0;
+  games[idx].round += 1;
+  games[idx].turn = "player1";
+  games[idx].players.player1.rematch = false;
+  games[idx].players.player2.rematch = false;
 
-  return { reset: testgame[idx] };
+  return { reset: games[idx] };
 };
 const requestRematch = (game, isPlayer1) => {
   const idx = getGameIndex(game.lobbyId);
   isPlayer1
-    ? (testgame[idx].players.player1.rematch =
-        !testgame[idx].players.player1.rematch)
-    : (testgame[idx].players.player2.rematch =
-        !testgame[idx].players.player2.rematch);
+    ? (games[idx].players.player1.rematch = !games[idx].players.player1.rematch)
+    : (games[idx].players.player2.rematch =
+        !games[idx].players.player2.rematch);
 
-  return { players: testgame[idx].players };
+  return { players: games[idx].players };
 };
 
 module.exports = {

@@ -10,8 +10,8 @@ const userRouter = require("./routes/user-router.js");
 const {
   removePlayer,
   findOpenQueue,
-  createQueueTicket,
-  updateTicketAndStartMatch,
+  createTicket,
+  startGame,
 } = require("./live-servers/lobby");
 const {
   findGame,
@@ -22,9 +22,7 @@ const {
 const {
   emitMessage,
   emitGameData,
-  emitBroadcast,
   emitGameStart,
-  emitBroadcastGameStart,
   emitGameResults,
   emitRematchMessage,
   emitResetGame,
@@ -68,7 +66,27 @@ io.on("connection", (socket) => {
     socket.join(result.lobbyId);
     emitGameStart(socket, result);
   }
-
+  socket.on("new-game", ({ player, game }) => {
+    // search for an open queue
+    const { openTicket } = findOpenQueue(game);
+    if (!openTicket) {
+      // add player to queue
+      const { ticket } = createTicket(player, game);
+      if (ticket.lobbyId) {
+        socket.join(ticket.lobbyId);
+        emitMessage(socket, player, "joined the queue");
+      } else emitMessage(socket, player, "servers are down, try agian later");
+    }
+    if (openTicket) {
+      // notify both players
+      socket.join(openTicket.lobbyId);
+      const msg = "Opponent found, starting match!";
+      emitMessage(socket, player, msg, openTicket.lobbyId);
+      // send both players the game data
+      const { game } = startGame(openTicket, player);
+      emitGameStart(socket, game);
+    }
+  });
   // TODO: EMIT GAMESTART AND GAMEDATA ARE THE SAME FUNCTION
   socket.on("leave", ({ player, lobbyId }) => {
     console.log("leave");
@@ -81,29 +99,6 @@ io.on("connection", (socket) => {
       io.to(lobbyId).emit("gameData", { game, lobby });
     }
   });
-  socket.on("search-match", async ({ player, game }) => {
-    // search for an open queue
-    const { openTicket } = findOpenQueue(game);
-    if (!openTicket) {
-      // add player to queue
-      const { success } = createQueueTicket(player, game);
-      if (success) {
-        emitMessage(socket, player, "joined the queue");
-      } else emitMessage(socket, player, "servers are down, try agian later");
-    }
-    if (openTicket) {
-      const { lobbyId } = openTicket;
-      // notify both players
-      socket.join(lobbyId);
-      emitMessage(socket, player, "Opponent found, starting match!");
-      emitBroadcast(socket, lobbyId, "Opponent found, starting match!");
-      // remove players from old queue and start game
-      const { game } = updateTicketAndStartMatch(openTicket, player, lobbyId);
-      // send both players the game data
-      emitGameStart(socket, game);
-      emitBroadcastGameStart(socket, game, lobbyId);
-    }
-  });
   socket.on("place-mark", ({ game, cell, player }) => {
     // updated the game board
     const { updatedGame, result } = updateGameboard(game, cell, player);
@@ -113,7 +108,7 @@ io.on("connection", (socket) => {
       emitGameResults(socket, game.lobbyId, result);
     }
   });
-  socket.on("request-rematch", ({ player, game, isPlayer1 }) => {
+  socket.on("request-rematch", ({ game, isPlayer1 }) => {
     const { players } = requestRematch(game, isPlayer1);
     if (players.player2.rematch && players.player1.rematch) {
       const { reset } = resetGame(game);

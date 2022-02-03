@@ -1,36 +1,38 @@
 const { v4: uuidv4 } = require("uuid");
-const { boards } = require("./boards");
+const boards = require("./boards");
 const { createGameInstance } = require("./game");
 
 const tickets = [];
 const findOpenQueue = (game) => {
+  // search for someone already waiting in the queue
   const openTicket = tickets.filter((ticket) => ticket.gameName === game)[0];
   return { openTicket };
 };
-const createQueueTicket = (player, gameName) => {
-  try {
-    const data = {
-      uid: uuidv4(),
-      gameName,
-      lobbyId: player.uid,
-      player: { nickname: player.nickname, uid: player.uid },
-    };
-    tickets.push(data);
-    return { success: true };
-  } catch {
-    return { success: false };
-  }
+const findIndex = (id) => {
+  return tickets.findIndex((ticket) => ticket.lobbyId === id);
+};
+const createTicket = (player, gameName) => {
+  const data = { lobbyId: uuidv4(), gameName, player };
+  tickets.push(data);
+  const idx = findIndex(data.lobbyId);
+  return { ticket: tickets[idx] };
 };
 
-const updateTicketAndStartMatch = (ticket, opponent, lobbyId) => {
+const startGame = (ticket, player) => {
   // create empty game board
-  const emptyGameBoard = {
+  const empty = {
+    lobbyId: ticket.lobbyId,
     gameName: ticket.gameName,
-    board: boards[ticket.gameName],
+    board: boards[ticket.gameName].map((i) => {
+      if (!i.isEmpty || i.content) {
+        return { ...i, isEmpty: true, content: "" };
+      }
+      return i;
+    }),
   };
   // populate player data
-  const playerData = { player1: ticket.player, player2: opponent };
-  const { game } = createGameInstance(emptyGameBoard, playerData, lobbyId);
+  const playerData = { player1: ticket.player, player2: player };
+  const { game } = createGameInstance(empty, playerData);
   // close the ticket
   const index = tickets.findIndex((t) => t.uid === ticket.uid);
   tickets.pop(index);
@@ -39,6 +41,6 @@ const updateTicketAndStartMatch = (ticket, opponent, lobbyId) => {
 
 module.exports = {
   findOpenQueue,
-  createQueueTicket,
-  updateTicketAndStartMatch,
+  createTicket,
+  startGame,
 };
