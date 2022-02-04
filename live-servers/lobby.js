@@ -38,9 +38,15 @@ const startGame = (ticket, player) => {
   tickets.pop(index);
   return { game };
 };
+const cancelTicket = (ticket) => {
+  const idx = tickets.findIndex((i) => i.lobbyId === ticket.lobbyId);
+  tickets.pop(tickets[idx]);
+  return { ticket: tickets[idx] };
+};
 
 module.exports = {
   findOpenQueue,
   createTicket,
   startGame,
+  cancelTicket,
 };

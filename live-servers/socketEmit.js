@@ -53,6 +53,9 @@ const emitResetGame = (socket, game) => {
   socket.emit("game-reset-response", game);
   socket.broadcast.to(game.lobbyId).emit("game-reset-response", game);
 };
+const emitTicketData = (socket, ticket) => {
+  socket.emit("ticket-data", ticket);
+};
 
 module.exports = {
   emitMessage,
@@ -61,4 +64,5 @@ module.exports = {
   emitGameResults,
   emitRematchMessage,
   emitResetGame,
+  emitTicketData,
 };

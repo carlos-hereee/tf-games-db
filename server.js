@@ -12,6 +12,7 @@ const {
   findOpenQueue,
   createTicket,
   startGame,
+  cancelTicket,
 } = require("./live-servers/lobby");
 const {
   findGame,
@@ -26,6 +27,7 @@ const {
   emitGameResults,
   emitRematchMessage,
   emitResetGame,
+  emitTicketData,
 } = require("./live-servers/socketEmit.js");
 
 // CONNECT TO MONGOOSEDB
@@ -74,6 +76,7 @@ io.on("connection", (socket) => {
       const { ticket } = createTicket(player, game);
       if (ticket.lobbyId) {
         socket.join(ticket.lobbyId);
+        emitTicketData(socket, ticket);
         emitMessage(socket, player, "joined the queue");
       } else emitMessage(socket, player, "servers are down, try agian later");
     }
@@ -85,6 +88,13 @@ io.on("connection", (socket) => {
       // send both players the game data
       const { game } = startGame(openTicket, player);
       emitGameStart(socket, game);
+    }
+  });
+  socket.on("cancel-ticket", ({ ticket, player }) => {
+    const res = cancelTicket(ticket);
+    if (!res.ticket) {
+      emitTicketData(socket, res.ticket);
+      emitMessage(socket, player, "canceled the search");
     }
   });
   // TODO: EMIT GAMESTART AND GAMEDATA ARE THE SAME FUNCTION
