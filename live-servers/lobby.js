@@ -17,7 +17,6 @@ const createTicket = (player, gameName) => {
   const idx = findIndex(data.lobbyId);
   return { ticket: tickets[idx] };
 };
-
 const startGame = (ticket, player) => {
   // create empty game board
   const empty = {

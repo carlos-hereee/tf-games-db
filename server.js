@@ -8,7 +8,6 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const userRouter = require("./routes/user-router.js");
 const {
-  removePlayer,
   findOpenQueue,
   createTicket,
   startGame,
@@ -19,6 +18,7 @@ const {
   updateGameboard,
   requestRematch,
   resetGame,
+  removePlayer,
 } = require("./live-servers/game");
 const {
   emitMessage,
@@ -98,15 +98,14 @@ io.on("connection", (socket) => {
     }
   });
   // TODO: EMIT GAMESTART AND GAMEDATA ARE THE SAME FUNCTION
-  socket.on("leave", ({ player, lobbyId }) => {
+  socket.on("leave", ({ player, game }) => {
     console.log("leave");
-    const { removed, game } = removePlayer(player, lobbyId);
+    const { removed } = removePlayer(player, game);
     if (removed) {
-      io.to(lobbyId).emit("message", {
+      io.to(game.lobbyId).emit("message", {
         player,
         message: `${player.nickname} has left`,
       });
-      io.to(lobbyId).emit("gameData", { game, lobby });
     }
   });
   socket.on("place-mark", ({ game, cell, player }) => {

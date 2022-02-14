@@ -85,6 +85,9 @@ const requestRematch = (game, isPlayer1) => {
 
   return { players: games[idx].players };
 };
+const removePlayer = (player, game) => {
+  
+};
 
 module.exports = {
   createGameInstance,
@@ -94,4 +97,5 @@ module.exports = {
   swapTurns,
   resetGame,
   requestRematch,
+  removePlayer,
 };
