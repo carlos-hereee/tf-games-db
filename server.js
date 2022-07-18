@@ -28,10 +28,11 @@ const {
   emitRematchMessage,
   emitResetGame,
   emitTicketData,
+  emitMessageLeft,
 } = require("./live-servers/socketEmit.js");
 
 // CONNECT TO MONGOOSEDB
-const uri = `mongodb+srv://${process.env.MONGOOSE_USERNAME}:${process.env.MONGOOSE_PASSWORD}@cluster0.9er2n.mongodb.net/take-five-db?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.MONGOOSE_USERNAME}:${process.env.MONGOOSE_PASSWORD}@cluster0.nb8m83l.mongodb.net/?retryWrites=true&w=majority`;
 
 const port = process.env.PORT || 4937;
 const server = express();
@@ -53,7 +54,7 @@ server.use(
 server.use(express.json());
 server.use("/users/", userRouter);
 
-// initialize socket for the server
+// initialize socket for the serve r
 // TODO: MOVE TO AN EMPTY DIRECTORY
 io.on("connection", (socket) => {
   const playerId = socket.handshake.query.id;
@@ -99,14 +100,8 @@ io.on("connection", (socket) => {
   });
   // TODO: EMIT GAMESTART AND GAMEDATA ARE THE SAME FUNCTION
   socket.on("leave", ({ player, game }) => {
-    console.log("leave");
-    const { removed } = removePlayer(player, game);
-    if (removed) {
-      io.to(game.lobbyId).emit("message", {
-        player,
-        message: `${player.nickname} has left`,
-      });
-    }
+    removePlayer(player, game);
+    emitMessageLeft(socket, game, player);
   });
   socket.on("place-mark", ({ game, cell, player }) => {
     // updated the game board

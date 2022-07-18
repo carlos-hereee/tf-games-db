@@ -86,7 +86,14 @@ const requestRematch = (game, isPlayer1) => {
   return { players: games[idx].players };
 };
 const removePlayer = (player, game) => {
-  
+  const isPlayer1 = player.uid === game.players.player1.uid;
+  const idx = getGameIndex(game.lobbyId);
+  if (isPlayer1) {
+    console.log("games[idx]", games[idx].players);
+    games[idx].players.player1 = {};
+  } else {
+    games[idx].players.player2 = {};
+  }
 };
 
 module.exports = {

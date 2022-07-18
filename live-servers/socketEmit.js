@@ -48,6 +48,12 @@ const emitRematchMessage = (socket, game, players, isPlayer1) => {
     players,
   });
 };
+// send rematch
+const emitMessageLeft = (socket, data, player) => {
+  socket.broadcast.to(data.lobbyId).emit("left-response", {
+    message: `${player.nickname} left`,
+  });
+};
 // send rematch notice to self
 const emitResetGame = (socket, game) => {
   socket.emit("game-reset-response", game);
@@ -65,4 +71,5 @@ module.exports = {
   emitRematchMessage,
   emitResetGame,
   emitTicketData,
+  emitMessageLeft,
 };
