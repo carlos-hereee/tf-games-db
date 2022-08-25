@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require("uuid");
 const boards = require("./boards");
-const { createGameInstance } = require("./game");
+const { createGame } = require("./game");
 
 const tickets = [];
 const findOpenQueue = (game) => {
@@ -31,7 +31,7 @@ const startGame = (ticket, player) => {
   };
   // populate player data
   const playerData = { player1: ticket.player, player2: player };
-  const { game } = createGameInstance(empty, playerData);
+  const { game } = createGame(empty, playerData);
   // close the ticket
   const index = tickets.findIndex((t) => t.uid === ticket.uid);
   tickets.pop(index);

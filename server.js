@@ -18,12 +18,11 @@ const {
   updateGameboard,
   requestRematch,
   resetGame,
-  removePlayer,
+  removeGame,
 } = require("./live-servers/game");
 const {
   emitMessage,
   emitGameData,
-  emitGameStart,
   emitGameResults,
   emitRematchMessage,
   emitResetGame,
@@ -63,12 +62,20 @@ io.on("connection", (socket) => {
     console.log(`connection made on socket id : ${playerId}`);
   }
   // check if player is already in a game
-  const { result } = findGame(playerId);
-  if (result.lobbyId) {
+  const { game } = findGame(playerId);
+  if (game.lobbyId) {
     // send player to game
-    socket.join(result.lobbyId);
-    emitGameStart(socket, result);
+    socket.join(game.lobbyId);
+    emitGameData(socket, game);
   }
+
+  socket.on("cancel-ticket", ({ ticket, player }) => {
+    const res = cancelTicket(ticket);
+    if (!res.ticket) {
+      emitTicketData(socket, res.ticket);
+      emitMessage(socket, player, "canceled the search");
+    }
+  });
   socket.on("new-game", ({ player, game }) => {
     // search for an open queue
     const { openTicket } = findOpenQueue(game);
@@ -88,25 +95,21 @@ io.on("connection", (socket) => {
       emitMessage(socket, player, msg, openTicket.lobbyId);
       // send both players the game data
       const { game } = startGame(openTicket, player);
-      emitGameStart(socket, game);
+      emitGameData(socket, game);
     }
   });
-  socket.on("cancel-ticket", ({ ticket, player }) => {
-    const res = cancelTicket(ticket);
-    if (!res.ticket) {
-      emitTicketData(socket, res.ticket);
-      emitMessage(socket, player, "canceled the search");
-    }
-  });
-  // TODO: EMIT GAMESTART AND GAMEDATA ARE THE SAME FUNCTION
-  socket.on("leave", ({ player, game }) => {
-    removePlayer(player, game);
+
+  socket.on("player-leave", ({ player, game }) => {
+    socket.leave(game.lobbyId);
+    // delete game
+    removeGame(game);
     emitMessageLeft(socket, game, player);
   });
+
   socket.on("place-mark", ({ game, cell, player }) => {
     // updated the game board
     const { updatedGame, result } = updateGameboard(game, cell, player);
-    emitGameData(socket, updatedGame, game.lobbyId);
+    emitGameData(socket, updatedGame);
     // check for win
     if (result === "win" || result === "draw") {
       emitGameResults(socket, game.lobbyId, result);

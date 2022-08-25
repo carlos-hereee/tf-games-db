@@ -2,7 +2,7 @@ const { checkVictory } = require("./combination");
 const boards = require("./boards");
 const games = [];
 
-const createGameInstance = (board, players) => {
+const createGame = (board, players) => {
   const game = {
     ...board,
     players,
@@ -18,9 +18,9 @@ const findGame = (id) => {
     return players.player1.uid === id || players.player2.uid === id;
   })[0];
   if (res) {
-    return { result: res };
+    return { game: res };
   }
-  return { result: false };
+  return { game: false };
 };
 const getGameIndex = (lobbyId) => {
   return games.findIndex((game) => game.lobbyId === lobbyId);
@@ -85,24 +85,20 @@ const requestRematch = (game, isPlayer1) => {
 
   return { players: games[idx].players };
 };
-const removePlayer = (player, game) => {
-  const isPlayer1 = player.uid === game.players.player1.uid;
+const removeGame = (game) => {
   const idx = getGameIndex(game.lobbyId);
-  if (isPlayer1) {
-    console.log("games[idx]", games[idx].players);
-    games[idx].players.player1 = {};
-  } else {
-    games[idx].players.player2 = {};
+  if (games[idx].lobbyId) {
+    games.pop(games[idx]);
   }
 };
 
 module.exports = {
-  createGameInstance,
+  createGame,
   findGame,
   updateGameboard,
   checkVictory,
   swapTurns,
   resetGame,
   requestRematch,
-  removePlayer,
+  removeGame,
 };
