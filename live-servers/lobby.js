@@ -1,6 +1,4 @@
 const { v4: uuidv4 } = require("uuid");
-const boards = require("./boards");
-const { createGame } = require("./game");
 
 const tickets = [];
 const findOpenQueue = (player, gameName) => {
@@ -19,26 +17,7 @@ const createTicket = (player, gameName) => {
   const idx = findIndex(data.lobbyId);
   return { ticket: tickets[idx] };
 };
-const startGame = (ticket, player) => {
-  // create empty game board
-  const empty = {
-    lobbyId: ticket.lobbyId,
-    gameName: ticket.gameName,
-    board: boards[ticket.gameName].map((i) => {
-      if (!i.isEmpty || i.content) {
-        return { ...i, isEmpty: true, content: "" };
-      }
-      return i;
-    }),
-  };
-  // populate player data
-  const playerData = { player1: ticket.createdBy, player2: player };
-  const { game } = createGame(empty, playerData);
-  // close the ticket
-  const index = tickets.findIndex((t) => t.uid === ticket.uid);
-  tickets.pop(index);
-  return { game };
-};
+
 const cancelTicket = (ticket) => {
   const idx = tickets.findIndex((i) => i.lobbyId === ticket.lobbyId);
   tickets.pop(tickets[idx]);
@@ -47,6 +26,5 @@ const cancelTicket = (ticket) => {
 module.exports = {
   findOpenQueue,
   createTicket,
-  startGame,
   cancelTicket,
 };

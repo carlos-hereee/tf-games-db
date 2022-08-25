@@ -10,12 +10,12 @@ const userRouter = require("./routes/user-router.js");
 const {
   findOpenQueue,
   createTicket,
-  startGame,
   cancelTicket,
 } = require("./live-servers/lobby");
 const {
   findGame,
   updateGameboard,
+  startGame,
   requestRematch,
   resetGame,
   removeGame,
@@ -87,8 +87,8 @@ io.on("connection", (socket) => {
       } else emitMessage(socket, player, "servers are down, try agian later");
     }
     if (openTicket) {
-      // notify both players
       socket.join(openTicket.lobbyId);
+      // notify both players
       const msg = "Opponent found, starting match!";
       emitMessage(socket, player, msg, openTicket.lobbyId);
       // send both players the game data

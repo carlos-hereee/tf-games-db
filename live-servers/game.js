@@ -1,5 +1,5 @@
 const { checkVictory } = require("./combination");
-const boards = require("./boards");
+const { boards } = require("./boards");
 const games = [];
 
 const createGame = (board, players) => {
@@ -24,6 +24,24 @@ const findGame = (id) => {
 };
 const getGameIndex = (lobbyId) => {
   return games.findIndex((game) => game.lobbyId === lobbyId);
+};
+const startGame = (ticket, player) => {
+  // create empty game board
+  const b = boards[ticket.gameName];
+  const empty = {
+    lobbyId: ticket.lobbyId,
+    gameName: ticket.gameName,
+    board: b?.map((i) => {
+      if (!i.isEmpty || i.content) {
+        return { ...i, isEmpty: true, content: "" };
+      }
+      return i;
+    }),
+  };
+  // populate player data
+  const playerData = { player1: ticket.createdBy, player2: player };
+  const { game } = createGame(empty, playerData);
+  return { game };
 };
 const updateGameboard = ({ lobbyId }, cell, player) => {
   const idx = getGameIndex(lobbyId);
@@ -101,4 +119,5 @@ module.exports = {
   resetGame,
   requestRematch,
   removeGame,
+  startGame,
 };
