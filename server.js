@@ -70,18 +70,16 @@ io.on("connection", (socket) => {
   }
 
   socket.on("cancel-ticket", ({ ticket, player }) => {
-    const res = cancelTicket(ticket);
-    if (!res.ticket) {
-      emitTicketData(socket, res.ticket);
-      emitMessage(socket, player, "canceled the search");
-    }
+    cancelTicket(ticket);
+    emitTicketData(socket, {});
+    emitMessage(socket, player, "canceled the search");
   });
-  socket.on("new-game", ({ player, game }) => {
+  socket.on("new-game", ({ player, gameName }) => {
     // search for an open queue
-    const { openTicket } = findOpenQueue(game);
+    const { openTicket } = findOpenQueue(player, gameName);
     if (!openTicket) {
       // add player to queue
-      const { ticket } = createTicket(player, game);
+      const { ticket } = createTicket(player, gameName);
       if (ticket.lobbyId) {
         socket.join(ticket.lobbyId);
         emitTicketData(socket, ticket);
@@ -96,6 +94,8 @@ io.on("connection", (socket) => {
       // send both players the game data
       const { game } = startGame(openTicket, player);
       emitGameData(socket, game);
+      // delete ticket
+      cancelTicket(openTicket);
     }
   });
 

@@ -15,7 +15,7 @@ const createGame = (board, players) => {
 const findGame = (id) => {
   // find player within the list of games
   const res = games.filter(({ players }) => {
-    return players.player1.uid === id || players.player2.uid === id;
+    return players.player1?.uid === id || players.player2.uid === id;
   })[0];
   if (res) {
     return { game: res };
@@ -87,7 +87,7 @@ const requestRematch = (game, isPlayer1) => {
 };
 const removeGame = (game) => {
   const idx = getGameIndex(game.lobbyId);
-  if (games[idx].lobbyId) {
+  if (games[idx]) {
     games.pop(games[idx]);
   }
 };
