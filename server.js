@@ -100,6 +100,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("player-leave", ({ player, game }) => {
+    // reset game results
+    emitGameResults(socket, game.lobbyId, "");
     socket.leave(game.lobbyId);
     // delete game
     removeGame(game);
