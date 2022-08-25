@@ -1,42 +1,25 @@
-const wincon = require("./wincondition");
-const checkScoreBoard = (baord, gameName, player) => {
-  /**
-   *  TODO: FIXBUG - SOME COMBINATIONS THAT ARE NOT WINNNG RETURN
-   *  A WINNING RESUTL
-   */
-  let scoreBoard = wincon[gameName];
+const checkVictory = (board, player, count) => {
+  let scoreBoard = { x1: 0, x2: 0, x3: 0, y1: 0, y2: 0, y3: 0, z1: 0, z2: 0 };
+  if (count > 8) return "draw";
   // update the scoreboard
-  baord.forEach((cell) => {
-    if (!cell.isEmpty && cell.content === player.uid) {
-      // for each row
-      if (cell.positionX === 1) scoreBoard.positionX1 += 1;
-      if (cell.positionX === 2) scoreBoard.positionX2 += 1;
-      if (cell.positionX === 3) scoreBoard.positionX3 += 1;
-      if (cell.positionY === 1) scoreBoard.positionY1 += 1;
-      if (cell.positionY === 2) scoreBoard.positionY2 += 1;
-      if (cell.positionY === 3) scoreBoard.positionY3 += 1;
-      // top to bottom diagnol corners
-      if (
-        (cell.positionX === 1 && cell.positionY === 1) ||
-        (cell.positionX === 2 && cell.positionY === 2) ||
-        (cell.positionX === 3 && cell.positionY === 3)
-      ) {
-        scoreBoard.d_top_to_bottom += 1;
-      }
-      // bottom to top diagnol corners
-      if (
-        (cell.positionX === 1 && cell.positionY === 3) ||
-        (cell.positionX === 2 && cell.positionY === 2) ||
-        (cell.positionX === 3 && cell.positionY === 1)
-      ) {
-        scoreBoard.d_bottom_to_top += 1;
-      }
+  for (let i = 0; i < board.length; i++) {
+    const cell = board[i];
+    if (cell.content === player.uid) {
+      // log each row
+      scoreBoard[`x${cell.x}`] += 1;
+      scoreBoard[`y${cell.y}`] += 1;
+      // log diagnols
+      if (cell.x === 1 && cell.y === 1) scoreBoard.z1 += 1;
+      if (cell.x === 2 && cell.y === 2) scoreBoard.z1 += 1;
+      if (cell.x === 3 && cell.y === 3) scoreBoard.z1 += 1;
+      if (cell.x === 1 && cell.y === 3) scoreBoard.z2 += 1;
+      if (cell.x === 2 && cell.y === 2) scoreBoard.z2 += 1;
+      if (cell.x === 3 && cell.y === 1) scoreBoard.z2 += 1;
     }
-  });
-  if (Object.values(scoreBoard).filter((item) => item === 3)[0]) {
-    console.log(scoreBoard);
-    return { result: player.uid };
   }
-  return { result: "continue" };
+  if (Object.values(scoreBoard).includes(3)) {
+    return "win";
+  }
+  return "continue";
 };
-module.exports = { checkScoreBoard };
+module.exports = { checkVictory };

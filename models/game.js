@@ -9,8 +9,8 @@ const gameSchema = new Schema(
     board: [
       {
         cell: {
-          positionX: { type: Number },
-          positionY: { type: Number },
+          x: { type: Number },
+          y: { type: Number },
           isEmpty: { type: Boolean },
           content: { type: String },
         },

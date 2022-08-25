@@ -8,36 +8,30 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const userRouter = require("./routes/user-router.js");
 const {
-  removePlayer,
   findOpenQueue,
-  createQueueTicket,
-  updateTicketAndStartMatch,
+  createTicket,
+  cancelTicket,
 } = require("./live-servers/lobby");
 const {
   findGame,
   updateGameboard,
-  updateRequestedRematch,
-  checkRematch,
+  startGame,
+  requestRematch,
   resetGame,
-  swapTurns,
+  removeGame,
 } = require("./live-servers/game");
 const {
   emitMessage,
   emitGameData,
-  emitBroadcast,
-  emitGameStart,
-  emitBroadcastGameStart,
-  emitBroadcastGameData,
   emitGameResults,
-  emitBroadcastGameResults,
   emitRematchMessage,
-  emitBroadcastRematchMessage,
   emitResetGame,
-  emitBroadcastResetGame,
+  emitTicketData,
+  emitMessageLeft,
 } = require("./live-servers/socketEmit.js");
 
 // CONNECT TO MONGOOSEDB
-const uri = `mongodb+srv://${process.env.MONGOOSE_USERNAME}:${process.env.MONGOOSE_PASSWORD}@cluster0.9er2n.mongodb.net/take-five-db?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.MONGOOSE_USERNAME}:${process.env.MONGOOSE_PASSWORD}@cluster0.nb8m83l.mongodb.net/?retryWrites=true&w=majority`;
 
 const port = process.env.PORT || 4937;
 const server = express();
@@ -59,7 +53,7 @@ server.use(
 server.use(express.json());
 server.use("/users/", userRouter);
 
-// initialize socket for the server
+// initialize socket for the serve r
 // TODO: MOVE TO AN EMPTY DIRECTORY
 io.on("connection", (socket) => {
   const playerId = socket.handshake.query.id;
@@ -68,95 +62,69 @@ io.on("connection", (socket) => {
     console.log(`connection made on socket id : ${playerId}`);
   }
   // check if player is already in a game
-  const { result } = findGame(playerId);
-  if (result.lobbyId) {
+  const { game } = findGame(playerId);
+  if (game.lobbyId) {
     // send player to game
-    socket.join(result.lobbyId);
-    emitGameData(socket, result, result.lobbyId);
+    socket.join(game.lobbyId);
+    emitGameData(socket, game);
   }
 
-  // TODO: EMIT GAMESTART AND GAMEDATA ARE THE SAME FUNCTION
-  socket.on("leave", ({ player, lobbyId }) => {
-    console.log("leave");
-    const { removed, game } = removePlayer(player, lobbyId);
-    if (removed) {
-      io.to(lobbyId).emit("message", {
-        player,
-        message: `${player.nickname} has left`,
-      });
-      io.to(lobbyId).emit("gameData", { game, lobby });
-    }
+  socket.on("cancel-ticket", ({ ticket, player }) => {
+    cancelTicket(ticket);
+    emitTicketData(socket, {});
+    emitMessage(socket, player, "canceled the search");
   });
-  socket.on("search-match", async ({ player, game }) => {
+  socket.on("new-game", ({ player, gameName }) => {
     // search for an open queue
-    const { openTicket } = findOpenQueue(game);
+    const { openTicket } = findOpenQueue(player, gameName);
     if (!openTicket) {
       // add player to queue
-      const { success } = createQueueTicket(player, game);
-      if (success) {
+      const { ticket } = createTicket(player, gameName);
+      if (ticket.lobbyId) {
+        socket.join(ticket.lobbyId);
+        emitTicketData(socket, ticket);
         emitMessage(socket, player, "joined the queue");
       } else emitMessage(socket, player, "servers are down, try agian later");
     }
     if (openTicket) {
-      const { lobbyId } = openTicket;
+      socket.join(openTicket.lobbyId);
       // notify both players
-      socket.join(lobbyId);
-      emitMessage(socket, player, "Opponent found, starting match!");
-      emitBroadcast(socket, lobbyId, "Opponent found, starting match!");
-      // remove players from old queue and start game
-      const { game } = updateTicketAndStartMatch(openTicket, player, lobbyId);
+      const msg = "Opponent found, starting match!";
+      emitMessage(socket, player, msg, openTicket.lobbyId);
       // send both players the game data
-      emitGameStart(socket, game);
-      emitBroadcastGameStart(socket, game, lobbyId);
+      const { game } = startGame(openTicket, player);
+      emitGameData(socket, game);
+      // delete ticket
+      cancelTicket(openTicket);
     }
   });
+
+  socket.on("player-leave", ({ player, game }) => {
+    // reset game results
+    emitGameResults(socket, game.lobbyId, "");
+    socket.leave(game.lobbyId);
+    // delete game
+    removeGame(game);
+    emitMessageLeft(socket, game, player);
+  });
+
   socket.on("place-mark", ({ game, cell, player }) => {
     // updated the game board
     const { updatedGame, result } = updateGameboard(game, cell, player);
+    emitGameData(socket, updatedGame);
     // check for win
-    if (result === "draw") {
-      emitGameResults(socket, "draw");
-      emitBroadcastGameResults(socket, "draw", updatedGame.lobbyId);
-    }
-    if (result === "continue") {
-      const { board } = swapTurns(game.lobbyId);
-      emitGameData(socket, board, board.lobbyId);
-      emitBroadcastGameData(socket, board, board.lobbyId);
-    }
-    if (result !== "draw" && result !== "continue") {
-      const winner = result === player.uid ? "player1" : "player2";
-      emitGameResults(socket, winner);
-      emitBroadcastGameResults(socket, winner, updatedGame.lobbyId);
+    if (result === "win" || result === "draw") {
+      emitGameResults(socket, game.lobbyId, result);
     }
   });
-  socket.on("request-rematch", ({ player, game }) => {
-    // update and wait for player response
-    const { response } = updateRequestedRematch(player, game);
-    if (response) {
-      const { success } = checkRematch(game);
-      if (success) {
-        // reset game
-        const { reset } = resetGame(game);
-        emitResetGame(socket, reset);
-        emitBroadcastResetGame(socket, reset, reset.lobbyId);
-        // notify players
-        emitRematchMessage(socket, "Starting match");
-        emitBroadcastRematchMessage(socket, "Starting match", game.lobbyId);
-      } else {
-        // notify players
-        emitRematchMessage(socket, "You requested a rematch");
-        emitBroadcastRematchMessage(
-          socket,
-          `${player.nickname} has requested a rematch`,
-          game.lobbyId
-        );
-      }
-    }
-    if (!response) {
-      emitRematchMessage(
-        socket,
-        "Unable to request rematch; opponent left the room"
-      );
+  socket.on("request-rematch", ({ game, isPlayer1 }) => {
+    const { players } = requestRematch(game, isPlayer1);
+    if (players.player2.rematch && players.player1.rematch) {
+      const { reset } = resetGame(game);
+      // send reset game to both player
+      emitResetGame(socket, reset);
+    } else {
+      emitRematchMessage(socket, game, players, isPlayer1);
     }
   });
 });

@@ -1,44 +1,30 @@
 const { v4: uuidv4 } = require("uuid");
-const { boards } = require("./boards");
-const { createGameInstance } = require("./game");
 
 const tickets = [];
-const findOpenQueue = (game) => {
-  const openTicket = tickets.filter((ticket) => ticket.gameName === game)[0];
+const findOpenQueue = (player, gameName) => {
+  // search for someone already waiting in the queue
+  const openTicket = tickets.filter(
+    (ticket) => ticket.gameName === gameName && ticket.createdBy !== player
+  )[0];
   return { openTicket };
 };
-const createQueueTicket = (player, gameName) => {
-  try {
-    const data = {
-      uid: uuidv4(),
-      gameName,
-      lobbyId: player.uid,
-      player: { nickname: player.nickname, uid: player.uid },
-    };
-    tickets.push(data);
-    return { success: true };
-  } catch {
-    return { success: false };
-  }
+const findIndex = (id) => {
+  return tickets.findIndex((ticket) => ticket.lobbyId === id);
+};
+const createTicket = (player, gameName) => {
+  const data = { lobbyId: uuidv4(), gameName, createdBy: player };
+  tickets.push(data);
+  const idx = findIndex(data.lobbyId);
+  return { ticket: tickets[idx] };
 };
 
-const updateTicketAndStartMatch = (ticket, opponent, lobbyId) => {
-  // create empty game board
-  const emptyGameBoard = {
-    gameName: ticket.gameName,
-    board: boards[ticket.gameName],
-  };
-  // populate player data
-  const playerData = { player1: ticket.player, player2: opponent };
-  const { game } = createGameInstance(emptyGameBoard, playerData, lobbyId);
-  // close the ticket
-  const index = tickets.findIndex((t) => t.uid === ticket.uid);
-  tickets.pop(index);
-  return { game };
+const cancelTicket = (ticket) => {
+  const idx = tickets.findIndex((i) => i.lobbyId === ticket.lobbyId);
+  tickets.pop(tickets[idx]);
 };
 
 module.exports = {
   findOpenQueue,
-  createQueueTicket,
-  updateTicketAndStartMatch,
+  createTicket,
+  cancelTicket,
 };
