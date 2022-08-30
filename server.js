@@ -30,9 +30,6 @@ const {
   emitMessageLeft,
 } = require("./live-servers/socketEmit.js");
 
-// CONNECT TO MONGOOSEDB
-const uri = `mongodb+srv://${process.env.MONGOOSE_USERNAME}:${process.env.MONGOOSE_PASSWORD}@cluster0.nb8m83l.mongodb.net/?retryWrites=true&w=majority`;
-
 const port = process.env.PORT || 4937;
 const server = express();
 const httpServer = createServer(server);
@@ -133,7 +130,10 @@ server.get("/", (req, res) => {
   res.status(200).json({ message: "api is running" });
 });
 mongoose
-  .connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(process.env.MONGOOSE_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => {
     server.listen(port, () => {
       console.log(`\n *** Server listening on port ${port} *** \n`);
