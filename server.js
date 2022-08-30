@@ -50,6 +50,7 @@ server.use(
 server.use(express.json());
 server.use("/users/", userRouter);
 
+const uri = process.env.MONGOOSE_URI;
 // initialize socket for the serve r
 // TODO: MOVE TO AN EMPTY DIRECTORY
 io.on("connection", (socket) => {
@@ -130,10 +131,7 @@ server.get("/", (req, res) => {
   res.status(200).json({ message: "api is running" });
 });
 mongoose
-  .connect(process.env.MONGOOSE_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     server.listen(port, () => {
       console.log(`\n *** Server listening on port ${port} *** \n`);
