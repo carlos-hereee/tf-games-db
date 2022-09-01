@@ -39,7 +39,6 @@ const io = new Server(httpServer, {
     methods: ["GET", "POST"],
   },
 });
-io.set("origins", "*:*");
 server.use(helmet());
 server.use(cookieParser());
 server.use(
