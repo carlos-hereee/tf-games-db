@@ -136,6 +136,6 @@ mongoose
     server.listen(port, () => {
       console.log(`\n *** Server listening on port ${port} *** \n`);
     });
-    httpServer.listen(1200, () => console.log("1200"));
+    httpServer.listen(port, () => console.log("1200"));
   })
   .catch((e) => console.log("e", e));
