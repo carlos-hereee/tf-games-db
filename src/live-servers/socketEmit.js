@@ -58,7 +58,9 @@ const emitResetGame = (socket, game) => {
 const emitTicketData = (socket, ticket) => {
   socket.emit("ticket-data", ticket);
 };
-
+const emitClockLobbyData = (socket, isRunning, seconds) => {
+  socket.emit("clock-lobby-data", { isRunning, seconds });
+};
 module.exports = {
   emitMessage,
   emitGameData,
@@ -67,4 +69,5 @@ module.exports = {
   emitResetGame,
   emitTicketData,
   emitMessageLeft,
+  emitClockLobbyData,
 };

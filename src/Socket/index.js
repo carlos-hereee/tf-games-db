@@ -21,6 +21,7 @@ const {
   emitTicketData,
   emitMessageLeft,
 } = require("../live-servers/socketEmit.js");
+const { startTimerFrom0 } = require("./timer");
 
 const initialConnection = (socket, playerId) => {
   if (playerId) {
@@ -58,6 +59,7 @@ const socketManager = (socket) => {
       const { ticket } = createTicket(player, gameName);
       if (ticket.lobbyId) {
         socket.join(ticket.lobbyId);
+        startTimerFrom0(socket, ticket.lobbyId, true);
         emitTicketData(socket, ticket);
         emitMessage(socket, player, "joined the queue");
       } else emitMessage(socket, player, "servers are down, try agian later");

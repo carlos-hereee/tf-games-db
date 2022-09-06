@@ -10,7 +10,7 @@ const {
   generateAccessToken,
   generateRefreshToken,
   refreshTokenSecret,
-} = require("../../usefulFunctions");
+} = require("../middleware/usefulFunctions");
 
 router.get("/", authenticate, async (req, res) => {
   const { uid, username, email } = req.user;

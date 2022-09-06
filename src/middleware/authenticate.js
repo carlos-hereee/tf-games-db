@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { accessTokenSecret } = require("../../usefulFunctions");
+const { accessTokenSecret } = require("./usefulFunctions");
 
 module.exports = async (req, res, next) => {
   const authorization = req.headers.authorization;
