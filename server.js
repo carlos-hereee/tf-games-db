@@ -33,23 +33,16 @@ const {
 // env
 const port = process.env.PORT;
 const uri = process.env.MONGOOSE_URI;
+const clientURL = process.env.CLIENT_BASE_URL;
 // set up
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: process.env.CLIENT_BASE_URL,
-    methods: ["GET", "POST"],
-  },
+  cors: { origin: clientURL, methods: ["GET", "POST"] },
 });
 app.use(helmet());
 app.use(cookieParser());
-app.use(
-  cors({
-    credentials: true,
-    origin: process.env.CLIENT_BASE_URL,
-  })
-);
+app.use(cors({ credentials: true, origin: clientURL }));
 app.use(express.json());
 app.use("/users/", userRouter);
 
