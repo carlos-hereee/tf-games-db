@@ -38,7 +38,7 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONT_END_BASE_URL,
+    origin: process.env.CLIENT_BASE_URL,
     methods: ["GET", "POST"],
   },
 });
@@ -47,7 +47,7 @@ app.use(cookieParser());
 app.use(
   cors({
     credentials: true,
-    origin: process.env.FRONT_END_BASE_URL,
+    origin: process.env.CLIENT_BASE_URL,
   })
 );
 app.use(express.json());
