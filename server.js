@@ -30,30 +30,33 @@ const {
   emitMessageLeft,
 } = require("./live-servers/socketEmit.js");
 
-const port = process.env.PORT || 4937;
-const server = express();
-const httpServer = createServer(server);
-const io = new Server(httpServer, {
+// env
+const port = process.env.PORT;
+const uri = process.env.MONGOOSE_URI;
+// set up
+const app = express();
+const server = createServer(app);
+const io = new Server(server, {
   cors: {
     origin: process.env.FRONT_END_BASE_URL,
     methods: ["GET", "POST"],
   },
 });
-server.use(helmet());
-server.use(cookieParser());
-server.use(
+app.use(helmet());
+app.use(cookieParser());
+app.use(
   cors({
     credentials: true,
     origin: process.env.FRONT_END_BASE_URL,
   })
 );
-server.use(express.json());
-server.use("/users/", userRouter);
+app.use(express.json());
+app.use("/users/", userRouter);
 
-const uri = process.env.MONGOOSE_URI;
-// initialize socket for the serve r
+// initialize socket for the server
 // TODO: MOVE TO AN EMPTY DIRECTORY
 io.on("connection", (socket) => {
+  console.log("A user connected");
   const playerId = socket.handshake.query.id;
   if (playerId) {
     socket.join(playerId);
@@ -127,15 +130,15 @@ io.on("connection", (socket) => {
   });
 });
 // tesing server
-server.get("/", (req, res) => {
+app.get("/", (req, res) => {
   res.status(200).json({ message: "api is running" });
 });
+
 mongoose
   .connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     server.listen(port, () => {
       console.log(`\n *** Server listening on port ${port} *** \n`);
     });
-    httpServer.listen(port, () => console.log("1200"));
   })
   .catch((e) => console.log("e", e));
