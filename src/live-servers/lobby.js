@@ -4,9 +4,16 @@ const tickets = [];
 const findOpenQueue = (player, gameName) => {
   // search for someone already waiting in the queue
   const openTicket = tickets.filter(
-    (ticket) => ticket.gameName === gameName && ticket.createdBy !== player
+    (ticket) =>
+      ticket.gameName === gameName && ticket.createdBy.uid !== player.uid
   )[0];
   return { openTicket };
+};
+const findTicketWithPlayerId = (playerId) => {
+  const ticket = tickets.filter(
+    (ticket) => ticket.createdBy.uid === playerId
+  )[0];
+  return { ticket };
 };
 const findIndex = (id) => {
   return tickets.findIndex((ticket) => ticket.lobbyId === id);
@@ -27,4 +34,5 @@ module.exports = {
   findOpenQueue,
   createTicket,
   cancelTicket,
+  findTicketWithPlayerId,
 };
