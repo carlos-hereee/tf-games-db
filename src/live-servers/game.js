@@ -29,7 +29,7 @@ const startGame = (ticket, player) => {
   // create empty game board
   const b = boards[ticket.gameName];
   const empty = {
-    ticket,
+    ...ticket,
     // board: b?.map((i) => {
     //   if (!i.isEmpty || i.content) {
     //     return { ...i, isEmpty: true, content: "" };
