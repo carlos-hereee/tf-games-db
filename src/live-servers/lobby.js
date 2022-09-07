@@ -1,6 +1,9 @@
 const { v4: uuidv4 } = require("uuid");
 
 const tickets = [];
+const singlePlayer = ["snakeGame"];
+const twoPlayer = ["tictactoe"];
+
 const findOpenQueue = (player, gameName) => {
   // search for someone already waiting in the queue
   const openTicket = tickets.filter(
@@ -18,10 +21,17 @@ const findTicketWithPlayerId = (playerId) => {
 const findIndex = (id) => {
   return tickets.findIndex((ticket) => ticket.lobbyId === id);
 };
+
 const createTicket = (player, gameName) => {
-  const data = { lobbyId: uuidv4(), gameName, createdBy: player };
+  const data = {
+    lobbyId: uuidv4(),
+    gameName,
+    createdBy: player,
+    singlePlayer: singlePlayer.includes(gameName) ? true : false,
+  };
   tickets.push(data);
   const idx = findIndex(data.lobbyId);
+  console.log(tickets[idx]);
   return { ticket: tickets[idx] };
 };
 
