@@ -21,7 +21,7 @@ const {
   emitTicketData,
   emitMessageLeft,
 } = require("../live-servers/socketEmit.js");
-const { startTimerFrom0 } = require("./timer");
+const { startLobbyTimer, clearLobbyTimer } = require("./timer");
 
 const initialConnection = (socket, playerId) => {
   if (playerId) {
@@ -46,12 +46,13 @@ const socketManager = (socket) => {
   const playerId = socket.handshake.query.id;
   initialConnection(socket, playerId);
 
-  socket.on("cancel-ticket", ({ ticket, player }) => {
+  socket.on("cancel-ticket", ({ ticket, player, clock }) => {
     cancelTicket(ticket);
+    clearLobbyTimer(socket, clock);
     emitTicketData(socket, {});
     emitMessage(socket, player, "canceled the search");
   });
-  socket.on("new-game", ({ player, gameName }) => {
+  socket.on("new-game", ({ player, gameName, clock }) => {
     // search for an open queue
     const { openTicket } = findOpenQueue(player, gameName);
     if (!openTicket) {
@@ -59,7 +60,7 @@ const socketManager = (socket) => {
       const { ticket } = createTicket(player, gameName);
       if (ticket.lobbyId) {
         socket.join(ticket.lobbyId);
-        startTimerFrom0(socket, ticket.lobbyId, true);
+        startLobbyTimer(socket, 0, clock);
         emitTicketData(socket, ticket);
         emitMessage(socket, player, "joined the queue");
       } else emitMessage(socket, player, "servers are down, try agian later");
@@ -68,6 +69,7 @@ const socketManager = (socket) => {
       socket.join(openTicket.lobbyId);
       // notify both players
       const msg = "Opponent found, starting match!";
+      clearLobbyTimer(socket, clock);
       emitMessage(socket, player, msg, openTicket.lobbyId);
       // send both players the game data
       const { game } = startGame(openTicket, player);

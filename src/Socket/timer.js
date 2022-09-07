@@ -1,4 +1,7 @@
 const { emitClockLobbyData } = require("../live-servers/socketEmit");
+const { v4: uuidv4 } = require("uuid");
+
+const timers = {};
 
 const timer = (count, direction, isRunning) => {
   let seconds = 0;
@@ -13,13 +16,16 @@ const timer = (count, direction, isRunning) => {
   console.log("count, direction", count, direction);
 };
 
-const startTimerFrom0 = (socket, isRunning) => {
-  if (isRunning) {
-    let seconds = 0;
-    setInterval(() => {
-      seconds += 1;
-      emitClockLobbyData(socket, isRunning, seconds);
-    }, 1000);
-  }
+const startLobbyTimer = (socket, seconds) => {
+  const clockId = uuidv4();
+  timers[`timerLobby${clockId}`] = setInterval(() => {
+    seconds += 1;
+    emitClockLobbyData(socket, { clockId, isRunning: true, seconds });
+  }, 1000);
 };
-module.exports = { timer, startTimerFrom0 };
+const clearLobbyTimer = (socket, clock) => {
+  clearInterval(timers[`timerLobby${clock.clockId}`]);
+  emitClockLobbyData(socket, false, 0);
+};
+
+module.exports = { timer, startLobbyTimer, clearLobbyTimer };
