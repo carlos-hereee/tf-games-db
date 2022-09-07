@@ -20,6 +20,12 @@ const emitGameData = (socket, game) => {
   socket.broadcast.to(game.lobbyId).emit("game-data", game);
 };
 
+// send game data to client
+const emitGameStartData = (socket, game) => {
+  socket.emit("game-start", game);
+  socket.broadcast.to(game.lobbyId).emit("game-start", game);
+};
+
 // send game result
 const emitGameResults = (socket, roomId, result) => {
   socket.emit("game-results", { result });
@@ -70,4 +76,5 @@ module.exports = {
   emitTicketData,
   emitMessageLeft,
   emitClockLobbyData,
+  emitGameStartData,
 };

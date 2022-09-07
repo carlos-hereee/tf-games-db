@@ -26,7 +26,7 @@ const createTicket = (player, gameName) => {
 };
 
 const cancelTicket = (ticket) => {
-  const idx = tickets.findIndex((i) => i.lobbyId === ticket.lobbyId);
+  const idx = tickets.findIndex((i) => i.lobbyId === ticket?.lobbyId);
   tickets.pop(tickets[idx]);
 };
 

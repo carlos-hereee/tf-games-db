@@ -15,6 +15,7 @@ const {
 const {
   emitMessage,
   emitGameData,
+  emitGameStartData,
   emitGameResults,
   emitRematchMessage,
   emitResetGame,
@@ -31,13 +32,13 @@ const initialConnection = (socket, playerId) => {
     if (ticket?.createdBy?.uid) {
       emitTicketData(socket, ticket);
       emitMessage(socket, ticket.createdBy, "Already in the queue");
-      // check if player is already in a game
-      const { game } = findGame(playerId);
-      if (game.lobbyId) {
-        // send player to game
-        socket.join(game.lobbyId);
-        emitGameData(socket, game);
-      }
+    }
+    // check if player is already in a game
+    const { game } = findGame(playerId);
+    if (game.lobbyId) {
+      // send player to game
+      socket.join(game.lobbyId);
+      emitGameData(socket, game);
     }
   }
 };
@@ -46,21 +47,21 @@ const socketManager = (socket) => {
   const playerId = socket.handshake.query.id;
   initialConnection(socket, playerId);
 
-  socket.on("cancel-ticket", ({ ticket, player, clock }) => {
+  socket.on("cancel-ticket", ({ ticket, player }) => {
     cancelTicket(ticket);
-    clearLobbyTimer(socket, clock);
-    emitTicketData(socket, {});
-    emitMessage(socket, player, "canceled the search");
+    clearLobbyTimer(socket, player);
+    // emitTicketData(socket, {});
+    // emitMessage(socket, player, "left lobby");
   });
-  socket.on("new-game", ({ player, gameName, clock }) => {
+  socket.on("new-game", ({ player, gameName }) => {
     // search for an open queue
     const { openTicket } = findOpenQueue(player, gameName);
+    startLobbyTimer(socket, player, 0);
     if (!openTicket) {
       // add player to queue
       const { ticket } = createTicket(player, gameName);
       if (ticket.lobbyId) {
         socket.join(ticket.lobbyId);
-        startLobbyTimer(socket, 0, clock);
         emitTicketData(socket, ticket);
         emitMessage(socket, player, "joined the queue");
       } else emitMessage(socket, player, "servers are down, try agian later");
@@ -68,14 +69,12 @@ const socketManager = (socket) => {
     if (openTicket) {
       socket.join(openTicket.lobbyId);
       // notify both players
+      emitTicketData(socket, openTicket);
       const msg = "Opponent found, starting match!";
-      clearLobbyTimer(socket, clock);
       emitMessage(socket, player, msg, openTicket.lobbyId);
       // send both players the game data
       const { game } = startGame(openTicket, player);
-      emitGameData(socket, game);
-      // delete ticket
-      cancelTicket(openTicket);
+      emitGameStartData(socket, game);
     }
   });
 
