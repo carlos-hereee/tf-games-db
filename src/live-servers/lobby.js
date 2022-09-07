@@ -31,7 +31,6 @@ const createTicket = (player, gameName) => {
   };
   tickets.push(data);
   const idx = findIndex(data.lobbyId);
-  console.log(tickets[idx]);
   return { ticket: tickets[idx] };
 };
 

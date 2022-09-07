@@ -1,70 +1,24 @@
 const { v4: uuidv4 } = require("uuid");
+
+const createBoard = (length, width) => {
+  let board = [];
+  for (let x = 0; x < length; x++) {
+    for (let y = 0; y < width; y++) {
+      board.push({
+        x,
+        y,
+        isEmpty: true,
+        content: "",
+        uid: uuidv4(),
+      });
+    }
+  }
+  return board;
+};
+
 const boards = {
-  tictactoe: [
-    {
-      uid: uuidv4(),
-      x: 1,
-      y: 1,
-      isEmpty: true,
-      content: "",
-    },
-    {
-      uid: uuidv4(),
-      x: 1,
-      y: 2,
-      isEmpty: true,
-      content: "",
-    },
-    {
-      uid: uuidv4(),
-      x: 1,
-      y: 3,
-      isEmpty: true,
-      content: "",
-    },
-    {
-      x: 2,
-      uid: uuidv4(),
-      y: 1,
-      isEmpty: true,
-      content: "",
-    },
-    {
-      uid: uuidv4(),
-      x: 2,
-      y: 2,
-      isEmpty: true,
-      content: "",
-    },
-    {
-      uid: uuidv4(),
-      x: 2,
-      y: 3,
-      isEmpty: true,
-      content: "",
-    },
-    {
-      x: 3,
-      y: 1,
-      uid: uuidv4(),
-      isEmpty: true,
-      content: "",
-    },
-    {
-      uid: uuidv4(),
-      x: 3,
-      y: 2,
-      isEmpty: true,
-      content: "",
-    },
-    {
-      uid: uuidv4(),
-      x: 3,
-      y: 3,
-      isEmpty: true,
-      content: "",
-    },
-  ],
+  tictactoe: createBoard(3, 3),
+  snakeGame: createBoard(5, 5),
 };
 
 module.exports = { boards };

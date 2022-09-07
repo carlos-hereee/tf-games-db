@@ -29,17 +29,20 @@ const startGame = (ticket, player) => {
   // create empty game board
   const b = boards[ticket.gameName];
   const empty = {
-    lobbyId: ticket.lobbyId,
-    gameName: ticket.gameName,
-    board: b?.map((i) => {
-      if (!i.isEmpty || i.content) {
-        return { ...i, isEmpty: true, content: "" };
-      }
-      return i;
-    }),
+    ticket,
+    // board: b?.map((i) => {
+    //   if (!i.isEmpty || i.content) {
+    //     return { ...i, isEmpty: true, content: "" };
+    //   }
+    //   return i;
+    // }),
+    board: b,
   };
   // populate player data
-  const playerData = { player1: ticket.createdBy, player2: player };
+  let playerData = {
+    player1: ticket.createdBy,
+    player2: ticket.singlePlayer ? {} : player,
+  };
   const { game } = createGame(empty, playerData);
   return { game };
 };
