@@ -5,6 +5,7 @@ const useableUserData = (user) => {
     username: user.username,
     elo: user.elo,
     uid: user.uid,
+    nickname: user.nickname,
   };
 };
 // generate token
@@ -25,21 +26,11 @@ const generateRefreshToken = (user) => {
     expiresIn: "30d",
   });
 };
-const logout = async (_, res) => {
-  try {
-    res.clearCookie("secret-cookie");
-    res.status(200).redirect("/login");
-  } catch (e) {
-    console.log("e", e);
-    return { success: false };
-  }
-};
 
 module.exports = {
   useableUserData,
   generateAccessToken,
   generateRefreshToken,
-  logout,
   refreshTokenSecret,
   accessTokenSecret,
 };

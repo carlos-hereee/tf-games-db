@@ -42,19 +42,19 @@ router.get("/:uid", authenticate, async (req, res) => {
     });
   }
 });
-// make a new user
 router.post("/register", registrationCred, async (req, res) => {
   let user = req.body;
   user.password = bcrypt.hashSync(user.password, 10);
   user.uid = uuidv4();
   try {
     const newUser = await new Users(user).save();
-    const user = useableUserData(newUser);
+    const useableData = useableUserData(newUser);
     const refreshToken = generateRefreshToken(newUser);
     const accessToken = generateAccessToken(newUser);
     res.cookie("secret-cookie", refreshToken, { httpOnly: true });
-    return res.status(200).json({ user, accessToken: accessToken });
+    res.status(200).json({ user: useableData, accessToken: accessToken });
   } catch (e) {
+    console.log("e", e);
     res.status(400).json({ message: "Failed to make user" });
   }
 });
@@ -79,7 +79,6 @@ router.post("/login", async (req, res) => {
     return res.status(400).json({ message: "User does not exist" });
   }
 });
-
 router.post("/refresh-token", async (req, res) => {
   const token = req.cookies["secret-cookie"];
   if (!token) {
@@ -98,6 +97,17 @@ router.post("/refresh-token", async (req, res) => {
   const accessToken = generateAccessToken(user);
   res.cookie("secret-cookie", refreshToken, { httpOnly: true });
   res.status(200).json({ accessToken: accessToken, user: { uid: user.uid } });
+});
+router.delete("/logout", authenticate, async (req, res) => {
+  try {
+    if (req.session) {
+      req.session.destroy();
+    }
+    res.clearCookie("secret-cookie");
+    res.status(202).json({ message: "successful logout" });
+  } catch {
+    res.status(400).json({ message: "error loggin out" });
+  }
 });
 
 module.exports = router;
