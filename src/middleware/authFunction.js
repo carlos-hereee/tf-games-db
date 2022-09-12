@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+
 const useableUserData = (user) => {
   return {
     username: user.username,
@@ -24,11 +25,21 @@ const generateRefreshToken = (user) => {
     expiresIn: "30d",
   });
 };
+const logout = async (_, res) => {
+  try {
+    res.clearCookie("secret-cookie");
+    res.status(200).redirect("/login");
+  } catch (e) {
+    console.log("e", e);
+    return { success: false };
+  }
+};
 
 module.exports = {
   useableUserData,
   generateAccessToken,
   generateRefreshToken,
+  logout,
   refreshTokenSecret,
   accessTokenSecret,
 };

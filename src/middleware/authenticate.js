@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { accessTokenSecret } = require("./usefulFunctions");
+const { accessTokenSecret } = require("./authFunction");
 
 module.exports = async (req, res, next) => {
   const authorization = req.headers.authorization;
@@ -7,6 +7,9 @@ module.exports = async (req, res, next) => {
     // no authorization header
     res.status(400).json({ message: "you need a token authorization" });
   }
+  // if (req.cookies.name) {
+
+  // }
   try {
     const token = authorization.split(" ")[1];
     req.user = jwt.verify(token, accessTokenSecret);

@@ -9,8 +9,9 @@ const {
   useableUserData,
   generateAccessToken,
   generateRefreshToken,
+  logout,
   refreshTokenSecret,
-} = require("../middleware/usefulFunctions");
+} = require("../middleware/authFunction");
 
 router.get("/", authenticate, async (req, res) => {
   const { uid, username, email } = req.user;
@@ -21,6 +22,7 @@ router.get("/", authenticate, async (req, res) => {
     });
     res.status(200).json({ message: useableUserData(user) });
   } catch {
+    // user not in database; needs to create an account
     res.status(404).json({ message: "user not found" });
   }
 });
@@ -28,6 +30,7 @@ router.get("/:uid", authenticate, async (req, res) => {
   const { uid } = req.params;
   try {
     const user = await Users.find({ uid });
+    console.log("uid", user);
     if (user[0].uid) {
       res.status(200).json({
         message: useableUserData(user[0]),
@@ -46,15 +49,11 @@ router.post("/register", registrationCred, async (req, res) => {
   user.uid = uuidv4();
   try {
     const newUser = await new Users(user).save();
-    if (newUser.uid) {
-      const refreshToken = generateRefreshToken(newUser);
-      const accessToken = generateAccessToken(newUser);
-      res.cookie("secret-cookie", refreshToken, { httpOnly: true });
-      return res.status(200).json({
-        user: useableUserData(response),
-        accessToken: accessToken,
-      });
-    }
+    const user = useableUserData(newUser);
+    const refreshToken = generateRefreshToken(newUser);
+    const accessToken = generateAccessToken(newUser);
+    res.cookie("secret-cookie", refreshToken, { httpOnly: true });
+    return res.status(200).json({ user, accessToken: accessToken });
   } catch (e) {
     res.status(400).json({ message: "Failed to make user" });
   }
@@ -77,7 +76,7 @@ router.post("/login", async (req, res) => {
       });
     }
   } catch {
-    return res.status(400).json({ message: "user does not exist" });
+    return res.status(400).json({ message: "User does not exist" });
   }
 });
 
