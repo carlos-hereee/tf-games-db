@@ -14,8 +14,8 @@ const validateCookie = require("../middleware/validateCookie");
 // custom middleware
 const validateUser = [authenticate, validateCookie];
 
-const changeOnline = (isOnline, _id) => {
-  Users.updateOne({ _id }, { $set: { isOnline } }, { upsert: false });
+const changeOnline = async (isOnline, _id) => {
+  await Users.updateOne({ _id }, { $set: { isOnline } });
 };
 
 router.get("/", authenticate, async (req, res) => {
@@ -41,13 +41,13 @@ router.post("/register", registrationCred, async (req, res) => {
   user.password = bcrypt.hashSync(user.password, 10);
   user.uid = uuidv4();
   user.nickname = user.username;
+  user.isOnline = true;
   try {
     const newUser = await new Users(user).save();
-    const useableData = useableUserData(newUser);
     const refreshToken = generateRefreshToken(newUser);
     const accessToken = generateAccessToken(newUser);
     res.cookie("secret-cookie", refreshToken, { httpOnly: true });
-    res.status(200).json({ user: useableData, accessToken: accessToken });
+    res.status(200).json({ user: useableUserData(newUser), accessToken });
   } catch (e) {
     res.status(400).json({ message: "Failed to make user" });
   }
@@ -59,7 +59,7 @@ router.post("/login", async (req, res) => {
     if (bcrypt.compareSync(password, user.password)) {
       const refreshToken = generateRefreshToken(user);
       const accessToken = generateAccessToken(user);
-      changeOnline(true, user.uid);
+      changeOnline(true, user._id);
       const data = await Users.findOne({ username });
       res.status(200).cookie("secret-cookie", refreshToken, { httpOnly: true });
       res.json({ user: useableUserData(data), accessToken: accessToken });
