@@ -6,6 +6,7 @@ const useableUserData = (user) => {
     elo: user.elo,
     uid: user.uid,
     nickname: user.nickname,
+    isOnline: user.isOnline,
   };
 };
 // generate token

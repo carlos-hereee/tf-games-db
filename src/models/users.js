@@ -11,6 +11,7 @@ const userSchema = new Schema(
     email: { type: String, set: toLower },
     avatarSrc: { type: String },
     nickname: { type: String },
+    isOnline: { type: Boolean },
     elo: { type: Number },
   },
   { timestamps: true }
