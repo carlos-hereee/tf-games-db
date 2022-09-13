@@ -1,10 +1,6 @@
 const { startGame } = require("../live-servers/game");
 const { createTicket, findOpenQueue } = require("../live-servers/lobby");
-const {
-  emitGameStartData,
-  emitMessage,
-  emitTicketData,
-} = require("../live-servers/socketEmit");
+const { emitMessage, emitTicketData } = require("../live-servers/socketEmit");
 const { startLobbyTimer } = require("./timer");
 
 const newgame = (socket, player, gameName) => {
@@ -18,8 +14,7 @@ const newgame = (socket, player, gameName) => {
       socket.join(ticket.lobbyId);
       // if game is single player
       if (ticket.singlePlayer) {
-        const { game } = startGame(ticket, player);
-        emitGameStartData(socket, game);
+        startGame(socket, ticket, player);
       } else {
         emitTicketData(socket, ticket);
         emitMessage(socket, player, "joined the queue");
@@ -32,9 +27,7 @@ const newgame = (socket, player, gameName) => {
     emitTicketData(socket, openTicket);
     const msg = "Opponent found, starting match!";
     emitMessage(socket, player, msg, openTicket.lobbyId);
-    // send both players the game data
-    const { game } = startGame(openTicket, player);
-    emitGameStartData(socket, game);
+    startGame(openTicket, player);
   }
 };
 
