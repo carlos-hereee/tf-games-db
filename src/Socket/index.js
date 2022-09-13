@@ -24,6 +24,7 @@ const {
 } = require("../live-servers/socketEmit.js");
 const { clearLobbyTimer } = require("./timer");
 const { newgame } = require("./newgame");
+const { gameUpdate } = require("./gameUpdate");
 
 const initialConnection = (socket, playerId) => {
   if (playerId) {
@@ -44,39 +45,34 @@ const initialConnection = (socket, playerId) => {
   }
 };
 
-const socketManager = (sck) => {
-  const playerId = sck.handshake.query.id;
-  initialConnection(sck, playerId);
-  sck.on("new-game", ({ player, gameName }) => newgame(sck, player, gameName));
-  sck.on("cancel-ticket", ({ ticket, player }) => {
+const socketManager = (s) => {
+  const playerId = s.handshake.query.id;
+  initialConnection(s, playerId);
+  s.on("new-game", ({ player, gameName }) => newgame(s, player, gameName));
+  s.on("game-update", ({ game, motion, player }) =>
+    gameUpdate(s, game, motion, player)
+  );
+  s.on("cancel-ticket", ({ ticket, player }) => {
     cancelTicket(ticket);
-    clearLobbyTimer(sck, player);
+    clearLobbyTimer(s, player);
   });
-  sck.on("player-leave", ({ player, game }) => {
+  s.on("player-leave", ({ player, game }) => {
     // reset game results
-    emitGameResults(sck, game.lobbyId, "");
-    sck.leave(game.lobbyId);
+    emitGameResults(s, game.lobbyId, "");
+    s.leave(game.lobbyId);
     // delete game
     removeGame(game);
-    emitMessageLeft(sck, game, player);
+    emitMessageLeft(s, game, player);
   });
-  sck.on("place-mark", ({ game, cell, player }) => {
-    // updated the game board
-    const { updatedGame, result } = updateGameboard(game, cell, player);
-    emitGameData(sck, updatedGame);
-    // check for win
-    if (result === "win" || result === "draw") {
-      emitGameResults(sck, game.lobbyId, result);
-    }
-  });
-  sck.on("request-rematch", ({ game, isPlayer1 }) => {
+
+  s.on("request-rematch", ({ game, isPlayer1 }) => {
     const { players } = requestRematch(game, isPlayer1);
     if (players.player2.rematch && players.player1.rematch) {
       const { reset } = resetGame(game);
       // send reset game to both player
-      emitResetGame(sck, reset);
+      emitResetGame(s, reset);
     } else {
-      emitRematchMessage(sck, game, players, isPlayer1);
+      emitRematchMessage(s, game, players, isPlayer1);
     }
   });
 };

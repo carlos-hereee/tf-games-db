@@ -3,6 +3,7 @@ const { boards } = require("./boards");
 const { config } = require("./gameConfig");
 const { emitGameStartData } = require("./socketEmit");
 const { startGameTimer } = require("../Socket/timer");
+const { getRandomFoodPostion } = require("./games/snakegame");
 const games = [];
 
 const createGame = (board, players) => {
@@ -46,9 +47,9 @@ const startGame = (socket, ticket, player) => {
   // create a game timer
   startGameTimer(socket, game, 0);
 };
-const updateGameboard = ({ lobbyId }, cell, player) => {
-  const idx = getGameIndex(lobbyId);
-  const cellIdx = games[idx].board.findIndex((c) => c.uid === cell.uid);
+const updateTicTacToe = (s, game, motion, player) => {
+  const idx = getGameIndex(game.lobbyId);
+  const cellIdx = games[idx].board.findIndex((c) => c.uid === motion.uid);
   // update board
   games[idx].board[cellIdx] = {
     ...games[idx].board[cellIdx],
@@ -56,13 +57,20 @@ const updateGameboard = ({ lobbyId }, cell, player) => {
     content: player.uid,
   };
   // swap turns
-  swapTurns(lobbyId);
+  swapTurns(game.lobby);
   const { board, turnCount } = games[idx];
   // return backupdated board and scoreboard tally
+  checkVictory(s, board, player, turnCount);
   return {
     updatedGame: games[idx],
-    result: checkVictory(board, player, turnCount),
   };
+};
+const updateSnakeGame = (s, game, motion, player) => {
+  const idx = getGameIndex(game.lobbyId);
+  const board = games[idx];
+  let food = getRandomFoodPostion();
+
+  return { updatedGame: games[idx] };
 };
 const swapTurns = (lobbyId) => {
   const idx = getGameIndex(lobbyId);
@@ -116,7 +124,8 @@ const removeGame = (game) => {
 module.exports = {
   createGame,
   findGame,
-  updateGameboard,
+  updateTicTacToe,
+  updateSnakeGame,
   checkVictory,
   swapTurns,
   resetGame,
