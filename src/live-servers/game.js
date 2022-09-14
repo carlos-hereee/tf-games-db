@@ -31,22 +31,21 @@ const getGameIndex = (lobbyId) => {
 };
 const startGame = (socket, ticket, player) => {
   // create empty game board
-  const b = grid[ticket.gameName](ticket.initialContent);
-  console.log("ticket", ticket);
-  // const empty = {
-  //   ...ticket,
-  //   ...config[ticket.gameName],
-  //   board: b,
-  // };
+  const b = grid[ticket.gameName](ticket.options.size);
+  const empty = {
+    ...ticket,
+    ...config[ticket.gameName],
+    board: b,
+  };
   // // populate player data
-  // let playerData = {
-  //   player1: ticket.createdBy,
-  //   player2: ticket.singlePlayer ? {} : player,
-  // };
-  // const { game } = createGame(empty, playerData);
-  // emitGameStartData(socket, game);
-  // // create a game timer
-  // startGameTimer(socket, game, 0);
+  let playerData = {
+    player1: ticket.createdBy,
+    player2: ticket.singlePlayer ? {} : player,
+  };
+  const { game } = createGame(empty, playerData);
+  emitGameStartData(socket, game);
+  // create a game timer
+  startGameTimer(socket, game, 0);
 };
 const updateTicTacToe = (s, game, motion, player) => {
   const idx = getGameIndex(game.lobbyId);

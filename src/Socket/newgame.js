@@ -4,7 +4,6 @@ const { emitMessage, emitTicketData } = require("../live-servers/socketEmit");
 const { startLobbyTimer } = require("./timer");
 
 const newgame = (socket, { player, name, options }) => {
-  console.log("options", options);
   // search for an open queue
   const { openTicket } = findOpenQueue(player, name);
   startLobbyTimer(socket, player, 0);
