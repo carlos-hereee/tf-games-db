@@ -27,7 +27,7 @@ const outsideGrid = (position, gridSize) => {
 const updateGrid = (grid, position, content) => {
   return grid.map((g) => {
     if (g.x === position.x && g.y === position.y) {
-      return { ...g, content };
+      return { ...g, content, isEmpty: false };
     }
     return g;
   });

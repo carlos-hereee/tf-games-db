@@ -22,7 +22,7 @@ const {
 } = require("../live-servers/socketEmit.js");
 const { clearLobbyTimer } = require("./timer");
 const { newgame } = require("./newgame");
-const { gameUpdate: update } = require("./gameUpdate");
+const { gameUpdate } = require("./gameUpdate");
 
 const initialConnection = (socket, playerId) => {
   if (playerId) {
@@ -47,7 +47,7 @@ const socketManager = (s) => {
   const playerId = s.handshake.query.id;
   initialConnection(s, playerId);
   s.on("game-new", (data) => newgame(s, data));
-  s.on("game-update", (data) => update(s, data));
+  s.on("game-update", (data) => gameUpdate(s, data));
   s.on("cancel-ticket", ({ ticket, player }) => {
     cancelTicket(ticket);
     clearLobbyTimer(s, player);

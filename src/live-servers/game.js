@@ -3,7 +3,6 @@ const { grid } = require("./grid");
 const { config } = require("./gameConfig");
 const { emitGameStartData } = require("./socketEmit");
 const { startGameTimer } = require("../Socket/timer");
-const { getRandomFoodPostion } = require("./games/snakegame");
 const games = [];
 
 const createGame = (board, players) => {
@@ -66,13 +65,7 @@ const updateTicTacToe = (s, game, motion, player) => {
     updatedGame: games[idx],
   };
 };
-const updateSnakeGame = (s, game, motion, player) => {
-  const idx = getGameIndex(game.lobbyId);
-  const board = games[idx];
-  let food = getRandomFoodPostion();
 
-  return { updatedGame: games[idx] };
-};
 const swapTurns = (lobbyId) => {
   const idx = getGameIndex(lobbyId);
   // swap turns
@@ -126,7 +119,6 @@ module.exports = {
   createGame,
   findGame,
   updateTicTacToe,
-  updateSnakeGame,
   checkVictory,
   swapTurns,
   resetGame,
