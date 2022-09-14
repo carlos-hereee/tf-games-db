@@ -22,10 +22,11 @@ const findIndex = (id) => {
   return tickets.findIndex((ticket) => ticket.lobbyId === id);
 };
 
-const createTicket = (player, gameName) => {
+const createTicket = (player, gameName, options) => {
   const data = {
     lobbyId: uuidv4(),
     gameName,
+    options,
     createdBy: player,
     singlePlayer: singlePlayer.includes(gameName) ? true : false,
   };
