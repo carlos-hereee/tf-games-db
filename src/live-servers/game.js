@@ -1,5 +1,5 @@
 const { checkVictory } = require("./combination");
-const { grid } = require("./grid");
+const { grid, randomGridPosition } = require("./grid");
 const { config } = require("./gameConfig");
 const { emitGameStartData } = require("./socketEmit");
 const { startGameTimer } = require("../Socket/timer");
@@ -30,12 +30,14 @@ const getGameIndex = (lobbyId) => {
   return games.findIndex((game) => game.lobbyId === lobbyId);
 };
 const startGame = (socket, ticket, player) => {
-  // create empty game board
+  // create initial game grid
   const b = grid[ticket.gameName](ticket.options.size);
+
   const empty = {
     ...ticket,
     ...config[ticket.gameName],
     board: b,
+    randomGridPosition,
   };
   // // populate player data
   let playerData = {
