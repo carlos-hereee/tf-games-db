@@ -27,7 +27,7 @@ const newgame = (socket, { player, name, options }) => {
     emitTicketData(socket, openTicket);
     const msg = "Opponent found, starting match!";
     emitMessage(socket, player, msg, openTicket.lobbyId);
-    startGame(openTicket, player);
+    startGame(socket, openTicket, player);
   }
 };
 
