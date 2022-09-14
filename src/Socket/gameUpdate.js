@@ -6,7 +6,7 @@ const games = {
   snakeGame: updateSnakeGame,
 };
 
-const gameUpdate = (s, game, motion, player) => {
+const gameUpdate = (s, { game, motion, player }) => {
   // updated the game board
   const { updatedGame } = games[game.gameName](s, game, motion, player);
   emitGameData(s, updatedGame);

@@ -6,8 +6,6 @@ const {
 } = require("../live-servers/lobby");
 const {
   findGame,
-  updateGameboard,
-  startGame,
   requestRematch,
   resetGame,
   removeGame,
@@ -24,7 +22,7 @@ const {
 } = require("../live-servers/socketEmit.js");
 const { clearLobbyTimer } = require("./timer");
 const { newgame } = require("./newgame");
-const { gameUpdate } = require("./gameUpdate");
+const { gameUpdate: update } = require("./gameUpdate");
 
 const initialConnection = (socket, playerId) => {
   if (playerId) {
@@ -48,10 +46,8 @@ const initialConnection = (socket, playerId) => {
 const socketManager = (s) => {
   const playerId = s.handshake.query.id;
   initialConnection(s, playerId);
-  s.on("new-game", ({ player, gameName }) => newgame(s, player, gameName));
-  s.on("game-update", ({ game, motion, player }) =>
-    gameUpdate(s, game, motion, player)
-  );
+  s.on("game-new", (data) => newgame(s, data));
+  s.on("game-update", (data) => update(s, data));
   s.on("cancel-ticket", ({ ticket, player }) => {
     cancelTicket(ticket);
     clearLobbyTimer(s, player);

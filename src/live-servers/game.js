@@ -1,5 +1,5 @@
 const { checkVictory } = require("./combination");
-const { boards } = require("./boards");
+const { grid } = require("./grid");
 const { config } = require("./gameConfig");
 const { emitGameStartData } = require("./socketEmit");
 const { startGameTimer } = require("../Socket/timer");
@@ -31,21 +31,22 @@ const getGameIndex = (lobbyId) => {
 };
 const startGame = (socket, ticket, player) => {
   // create empty game board
-  const b = boards[ticket.gameName];
-  const empty = {
-    ...ticket,
-    ...config[ticket.gameName],
-    board: b,
-  };
-  // populate player data
-  let playerData = {
-    player1: ticket.createdBy,
-    player2: ticket.singlePlayer ? {} : player,
-  };
-  const { game } = createGame(empty, playerData);
-  emitGameStartData(socket, game);
-  // create a game timer
-  startGameTimer(socket, game, 0);
+  const b = grid[ticket.gameName](ticket.initialContent);
+  console.log("ticket", ticket);
+  // const empty = {
+  //   ...ticket,
+  //   ...config[ticket.gameName],
+  //   board: b,
+  // };
+  // // populate player data
+  // let playerData = {
+  //   player1: ticket.createdBy,
+  //   player2: ticket.singlePlayer ? {} : player,
+  // };
+  // const { game } = createGame(empty, playerData);
+  // emitGameStartData(socket, game);
+  // // create a game timer
+  // startGameTimer(socket, game, 0);
 };
 const updateTicTacToe = (s, game, motion, player) => {
   const idx = getGameIndex(game.lobbyId);
@@ -85,7 +86,7 @@ const swapTurns = (lobbyId) => {
 
 const resetGame = ({ lobbyId }) => {
   const idx = getGameIndex(lobbyId);
-  let newBoard = boards[games[idx].gameName].map((i) => {
+  let newBoard = grid[games[idx].gameName].map((i) => {
     if (!i.isEmpty || i.content) {
       return { ...i, isEmpty: true, content: "" };
     }

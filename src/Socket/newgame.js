@@ -3,13 +3,14 @@ const { createTicket, findOpenQueue } = require("../live-servers/lobby");
 const { emitMessage, emitTicketData } = require("../live-servers/socketEmit");
 const { startLobbyTimer } = require("./timer");
 
-const newgame = (socket, player, gameName) => {
+const newgame = (socket, { player, name, options }) => {
+  console.log("options", options);
   // search for an open queue
-  const { openTicket } = findOpenQueue(player, gameName);
+  const { openTicket } = findOpenQueue(player, name);
   startLobbyTimer(socket, player, 0);
   if (!openTicket) {
     // add player to queue
-    const { ticket } = createTicket(player, gameName);
+    const { ticket } = createTicket(player, name, options);
     if (ticket.lobbyId) {
       socket.join(ticket.lobbyId);
       // if game is single player
