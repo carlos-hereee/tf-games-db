@@ -11,7 +11,12 @@ module.exports = (req, res, next) => {
   if (token === "null") {
     return res.status(401).json({ message: "you shall not pass!" });
   } else {
-    req.user = jwt.verify(token, accessTokenSecret);
+    req.user = jwt.verify(token, accessTokenSecret, (err, _) => {
+      if (err) {
+        // TODO: handle err for expired token
+        res.clearCookie("secret-cookie");
+      }
+    });
     next();
   }
 };
