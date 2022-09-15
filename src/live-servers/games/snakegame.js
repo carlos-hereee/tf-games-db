@@ -1,15 +1,18 @@
-const { randomGridPosition, outsideGrid, updateGrid } = require("../grid");
+const {
+  randomGridPosition,
+  outsideGrid,
+  updateGrid,
+  findCellIdx,
+} = require("../grid");
 
 const snakegame = (s, game, motion, _) => {
   let { board, snakeBody, options, food, gameOver } = game;
-  // update snakebody
   for (i = 0; i < options.newSegment; i++) {
     snakeBody.push([{ ...snakeBody[snakeBody.length - 1] }]);
   }
   options.newSegment = 0;
   for (let i = snakeBody.length - 2; i >= 0; i--) {
     snakeBody[i + 1] = { ...snakeBody[i] };
-    console.log("snake buring the math", snakeBody);
   }
   snakeBody[0].x += motion.x;
   snakeBody[0].y += motion.y;
@@ -33,19 +36,19 @@ const snakegame = (s, game, motion, _) => {
   }
   // update board
 
-  for (let i = 0; i < snakeBody.length; i++) {
-    board = updateGrid(board, snakeBody[i], "snake");
-
-    // if (board[i].content === "snake") {
-    //   // if not included in snake body
-    //   if (!snakeBody.some((s) => s.uid === board[i].uid)) {
-    //     console.log("board[i]", board[i]);
-    //     board = updateGrid(board, board[i], "");
-    //   }
-    // }
-    // if (snakeBody.some((s) => s.uid === board[i].uid)) {
-    //   console.log("board[i]", board[i]);
-    // }
+  for (let i = 0; i < board.length; i++) {
+    if (board[i].content === "snake") {
+      // if not included in snake body
+      const some = snakeBody.some((s) => s.uid === board[i].uid);
+      if (some) {
+        const idx = snakeBody.findIndex((s) => s.uid === board[i].uid);
+        // move snake on board
+        updateGrid(board, board[i], "");
+        board = updateGrid(board, snakeBody[idx], "snake");
+        const cellIdx = findCellIdx(board, snakeBody[idx]);
+        snakeBody[idx] = board[cellIdx];
+      }
+    }
   }
   return { g: game };
 };

@@ -14,7 +14,7 @@ const randomGridPosition = (grid, size) => {
     x: Math.floor(Math.random() * size.width) + 1,
     y: Math.floor(Math.random() * size.length) + 1,
   };
-  return grid[findGridIndexWithCoords(grid, coords)];
+  return grid[findCellIdx(grid, coords)];
 };
 const outsideGrid = (position, gridSize) => {
   return (
@@ -24,11 +24,11 @@ const outsideGrid = (position, gridSize) => {
     position.y > gridSize.y
   );
 };
-const findGridIndexWithCoords = (grid, cell) => {
+const findCellIdx = (grid, cell) => {
   return grid.findIndex((g) => g.x === cell.x && g.y === cell.y);
 };
 const updateGrid = (grid, cell, content) => {
-  const idx = findGridIndexWithCoords(grid, cell);
+  const idx = findCellIdx(grid, cell);
   grid[idx].content = content;
   grid[idx].hasContent = content ? true : false;
   return grid;
@@ -47,4 +47,10 @@ const grid = {
   },
 };
 
-module.exports = { grid, randomGridPosition, outsideGrid, updateGrid };
+module.exports = {
+  grid,
+  randomGridPosition,
+  outsideGrid,
+  updateGrid,
+  findCellIdx,
+};
