@@ -1,24 +1,13 @@
 const { checkVictory } = require("./combination");
 const { grid } = require("./grid");
-const { config } = require("./gameConfig");
 const { emitGameStartData } = require("./socketEmit");
 const { startGameTimer } = require("../Socket/timer");
 const games = [];
 
-const createGame = (board, players) => {
-  const game = {
-    ...board,
-    players,
-    turn: "player1",
-    turnCount: 0,
-  };
-  games.push(game);
-  return { game };
-};
 const findGame = (id) => {
   // find player within the list of games
-  const res = games.filter(({ players }) => {
-    return players.player1?.uid === id || players.player2.uid === id;
+  const res = games.filter(({ player1, player2 }) => {
+    return player1?.uid === id || player2.uid === id;
   })[0];
   if (res) {
     return { game: res };
@@ -31,21 +20,19 @@ const getGameIndex = (lobbyId) => {
 const startGame = (socket, ticket, player) => {
   // create initial game grid
   const b = grid[ticket.gameName](ticket.options.size);
-  const empty = {
+  const initialGame = {
     ...ticket,
-    ...config[ticket.gameName],
-    board: b,
-  };
-
-  // // populate player data
-  let playerData = {
+    ...b,
     player1: ticket.createdBy,
     player2: ticket.singlePlayer ? {} : player,
+    turn: "player1",
+    turnCount: 0,
+    gameOver: false,
   };
-  const { game } = createGame(empty, playerData);
-  emitGameStartData(socket, game);
+  games.push(initialGame);
+  emitGameStartData(socket, initialGame);
   // create a game timer
-  startGameTimer(socket, game, 0);
+  startGameTimer(socket, initialGame, 0);
 };
 const updateTicTacToe = (s, game, motion, player) => {
   const idx = getGameIndex(game.lobbyId);
@@ -116,7 +103,6 @@ const removeGame = (game) => {
 };
 
 module.exports = {
-  createGame,
   findGame,
   updateTicTacToe,
   checkVictory,
