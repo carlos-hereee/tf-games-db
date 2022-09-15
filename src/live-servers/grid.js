@@ -27,7 +27,7 @@ const outsideGrid = (position, gridSize) => {
 const updateGrid = (grid, position, content) => {
   return grid.map((g) => {
     if (g.x === position.x && g.y === position.y) {
-      return { ...g, content, isEmpty: false };
+      return { ...g, content, isEmpty: content ? false : true };
     }
     return g;
   });
@@ -37,9 +37,10 @@ const grid = {
   tictactoe: (init) => createGrid(init),
   snakeGame: (init) => {
     const grid = createGrid(init);
-    const random = randomGridPosition(init);
-    return updateGrid(grid, random, "snake-head");
+    const snakeBody = [randomGridPosition(init)];
+    const food = [randomGridPosition(init)];
+    return { board: updateGrid(grid, snakeBody[0], "snake"), snakeBody, food };
   },
 };
 
-module.exports = { grid, randomGridPosition, outsideGrid };
+module.exports = { grid, randomGridPosition, outsideGrid, updateGrid };

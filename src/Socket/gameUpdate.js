@@ -9,11 +9,11 @@ const games = {
 
 const gameUpdate = (s, { game, motion, player }) => {
   // updated the game board
-  games[game.gameName](s, game, motion, player);
-  // emitGameData(s, updatedGame);
+  const { g } = games[game.gameName](s, game, motion, player);
   // check for win
-  // if (result === "win" || result === "draw") {
-  //   emitGameResults(s, game.lobbyId, result);
-  // }
+  if (g.gameOver) {
+    emitGameResults(s, g.lobbyId, g.gameResults);
+  }
+  emitGameData(s, g);
 };
 module.exports = { gameUpdate };
