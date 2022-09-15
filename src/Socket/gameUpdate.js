@@ -11,6 +11,7 @@ const gameUpdate = (s, { game, motion, player }) => {
   // updated the game board
   const { g } = games[game.gameName](s, game, motion, player);
   // check for win
+  console.log("g.gameOver", g.gameOver);
   if (g.gameOver) {
     emitGameResults(s, g.lobbyId, g.gameResults);
   }

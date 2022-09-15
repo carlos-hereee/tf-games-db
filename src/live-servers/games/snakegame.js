@@ -6,7 +6,8 @@ const {
 } = require("../grid");
 
 const snakegame = (s, game, motion, _) => {
-  let { board, snakeBody, options, food, gameOver } = game;
+  let { board, snakeBody, options, food } = game;
+  if (game.gameOver) return;
   for (i = 0; i < options.newSegment; i++) {
     snakeBody.push([{ ...snakeBody[snakeBody.length - 1] }]);
   }
@@ -30,12 +31,12 @@ const snakegame = (s, game, motion, _) => {
     }
   }
   // check death
-  if (outsideGrid(snakeBody[0], options.gridSize) || isCrash(snakeBody)) {
-    gameOver = true;
+  if (outsideGrid(snakeBody[0], options.size) || isCrash(snakeBody)) {
+    game.gameOver = true;
     game.gameResults = "Defeat";
+    return { g: game };
   }
   // update board
-
   for (let i = 0; i < board.length; i++) {
     if (board[i].content === "snake") {
       // if not included in snake body

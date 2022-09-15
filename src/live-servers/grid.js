@@ -19,9 +19,9 @@ const randomGridPosition = (grid, size) => {
 const outsideGrid = (position, gridSize) => {
   return (
     position.x < 1 ||
-    position.x > gridSize.x ||
+    position.x > gridSize.length ||
     position.y < 1 ||
-    position.y > gridSize.y
+    position.y > gridSize.width
   );
 };
 const findCellIdx = (grid, cell) => {
@@ -29,8 +29,10 @@ const findCellIdx = (grid, cell) => {
 };
 const updateGrid = (grid, cell, content) => {
   const idx = findCellIdx(grid, cell);
-  grid[idx].content = content;
-  grid[idx].hasContent = content ? true : false;
+  if (idx !== -1) {
+    grid[idx].content = content;
+    grid[idx].hasContent = content ? true : false;
+  }
   return grid;
 };
 
