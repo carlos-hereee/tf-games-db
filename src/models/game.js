@@ -11,7 +11,7 @@ const gameSchema = new Schema(
         cell: {
           x: { type: Number },
           y: { type: Number },
-          isEmpty: { type: Boolean },
+          hasContent: { type: Boolean },
           content: { type: String },
         },
       },

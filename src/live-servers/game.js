@@ -40,7 +40,7 @@ const updateTicTacToe = (s, game, motion, player) => {
   // update board
   games[idx].board[cellIdx] = {
     ...games[idx].board[cellIdx],
-    isEmpty: false,
+    hasContent: false,
     content: player.uid,
   };
   // swap turns
@@ -67,8 +67,8 @@ const swapTurns = (lobbyId) => {
 const resetGame = ({ lobbyId }) => {
   const idx = getGameIndex(lobbyId);
   let newBoard = grid[games[idx].gameName].map((i) => {
-    if (!i.isEmpty || i.content) {
-      return { ...i, isEmpty: true, content: "" };
+    if (!i.hasContent || i.content) {
+      return { ...i, hasContent: true, content: "" };
     }
     return i;
   });

@@ -9,6 +9,7 @@ const snakegame = (s, game, motion, _) => {
   options.newSegment = 0;
   for (let i = snakeBody.length - 2; i >= 0; i--) {
     snakeBody[i + 1] = { ...snakeBody[i] };
+    console.log("snake buring the math", snakeBody);
   }
   snakeBody[0].x += motion.x;
   snakeBody[0].y += motion.y;
@@ -22,7 +23,7 @@ const snakegame = (s, game, motion, _) => {
     if (onSnake(snakeBody, f)) {
       food.pop(i);
       options.newSegment += options.expansionRate;
-      food.push(getRandomFoodPostion(snakeBody));
+      food.push(getRandomFoodPostion(board, snakeBody, options.size));
     }
   }
   // check death
@@ -31,21 +32,28 @@ const snakegame = (s, game, motion, _) => {
     game.gameResults = "Defeat";
   }
   // update board
-  for (let i = 0; i < board.length; i++) {
-    if (!board[i].isEmpty) {
-      // if not included in snake body
-      if (!snakeBody.includes({ x: board[i].x, y: board[i].y })) {
-        board[i] = updateGrid(board, board[i], "");
-      }
-    }
+
+  for (let i = 0; i < snakeBody.length; i++) {
+    board = updateGrid(board, snakeBody[i], "snake");
+
+    // if (board[i].content === "snake") {
+    //   // if not included in snake body
+    //   if (!snakeBody.some((s) => s.uid === board[i].uid)) {
+    //     console.log("board[i]", board[i]);
+    //     board = updateGrid(board, board[i], "");
+    //   }
+    // }
+    // if (snakeBody.some((s) => s.uid === board[i].uid)) {
+    //   console.log("board[i]", board[i]);
+    // }
   }
   return { g: game };
 };
 
-const getRandomFoodPostion = (snakeBody) => {
+const getRandomFoodPostion = (grid, snakeBody, size) => {
   let newFoodPostion;
   while (newFoodPostion === null || onSnake(snakeBody, newFoodPostion)) {
-    newFoodPostion = randomGridPosition();
+    newFoodPostion = randomGridPosition(grid, size);
   }
 };
 const onSnake = (snakeBody, position, { ignoreHead = false } = {}) => {
