@@ -31,7 +31,7 @@ const emitGameResults = (socket, roomId, result) => {
   socket.emit("game-results", { result });
   // broadcast the opposite message
   socket.broadcast.to(roomId).emit("game-results", {
-    result: result === "win" ? "lose" : result,
+    result: result === "win" ? "Defeat!" : result,
   });
 };
 
@@ -52,6 +52,7 @@ const emitRematchMessage = (socket, game, players, isPlayer1) => {
 };
 // send rematch
 const emitMessageLeft = (socket, data, player) => {
+  socket.emit("player-left", { show: false });
   socket.broadcast.to(data.lobbyId).emit("left-response", {
     message: `${player.nickname} left`,
   });

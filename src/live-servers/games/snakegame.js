@@ -33,8 +33,7 @@ const snakegame = (s, game, motion, _) => {
   // check death
   if (outsideGrid(snakeBody[0], options.size) || isCrash(snakeBody)) {
     game.gameOver = true;
-    game.gameResults = "Defeat";
-    return { g: game };
+    game.gameResults = "Defeat!";
   }
   // update board
   for (let i = 0; i < board.length; i++) {

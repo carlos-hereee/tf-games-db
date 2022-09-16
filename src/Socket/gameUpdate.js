@@ -12,11 +12,12 @@ const gameUpdate = (s, { game, motion, player }) => {
   // updated the game board
   const { g } = games[game.gameName](s, game, motion, player);
   // check for win
-  console.log("g.gameOver", g.gameOver);
-  if (g.gameOver) {
-    clearGameTimer(s, game);
-    emitGameResults(s, g.lobbyId, g.gameResults);
+  if (g) {
+    if (g.gameOver) {
+      clearGameTimer(s, game);
+      emitGameResults(s, g.lobbyId, g.gameResults);
+    }
+    emitGameData(s, g);
   }
-  emitGameData(s, g);
 };
 module.exports = { gameUpdate };
