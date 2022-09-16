@@ -7,7 +7,13 @@ const {
 
 const snakegame = (s, game, motion, _) => {
   let { board, snakeBody, options, food } = game;
-  if (game.gameOver) return;
+
+  if (game.gameOver) return { g: game };
+  const currentTime = Date.now();
+  const sinceLastTime = (currentTime - game.lastTimeRender) / 1000;
+  if (sinceLastTime < 1 / options.snakeSpeed) return { g: game };
+  game.lastTimeRender = currentTime;
+
   for (i = 0; i < options.newSegment; i++) {
     snakeBody.push([{ ...snakeBody[snakeBody.length - 1] }]);
   }
@@ -23,7 +29,12 @@ const snakegame = (s, game, motion, _) => {
   if (options.lastInputDirection.length > 5) {
     options.lastInputDirection.pop(0);
   }
-
+  // check death
+  if (outsideGrid(snakeBody[0], options.size) || isCrash(snakeBody)) {
+    game.gameOver = true;
+    game.gameResults = "Defeat!";
+    return { g: game };
+  }
   // update food
   for (let i = 0; i < food.length; i++) {
     if (onSnake(snakeBody, food[i])) {
@@ -33,11 +44,6 @@ const snakegame = (s, game, motion, _) => {
       food.push(coords);
       board = updateGrid(board, coords, "food");
     }
-  }
-  // check death
-  if (outsideGrid(snakeBody[0], options.size) || isCrash(snakeBody)) {
-    game.gameOver = true;
-    game.gameResults = "Defeat!";
   }
 
   // // update board
@@ -67,9 +73,10 @@ const getRandomFoodPostion = (grid, snakeBody, size) => {
   return newFoodPosition;
 };
 const onSnake = (snakeBody, position, { ignoreHead = false } = {}) => {
+  if (!snakeBody.length) return false;
   return snakeBody.some((s, idx) => {
     if (ignoreHead && idx === 0) return false;
-    return s.x === position?.x && s.y === position?.y;
+    return s?.x === position?.x && s?.y === position?.y;
   });
 };
 const isCrash = (snakeBody) => {

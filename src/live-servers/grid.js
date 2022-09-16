@@ -18,6 +18,7 @@ const randomGridPosition = (grid, size) => {
   return grid[idx];
 };
 const outsideGrid = (position, gridSize) => {
+  if (!position) return true;
   return (
     position.x < 1 ||
     position.x > gridSize.length ||
