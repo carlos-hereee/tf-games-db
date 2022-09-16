@@ -13,19 +13,16 @@ const emitMessage = (socket, player, message, roomId) => {
     message,
   });
 };
-
 // send game data to client
 const emitGameData = (socket, game) => {
   socket.emit("game-data", game);
   socket.broadcast.to(game.lobbyId).emit("game-data", game);
 };
-
 // send game data to client
 const emitGameStartData = (socket, game) => {
   socket.emit("game-start", game);
   socket.broadcast.to(game.lobbyId).emit("game-start", game);
 };
-
 // send game result
 const emitGameResults = (socket, roomId, result) => {
   socket.emit("game-results", { result });
@@ -34,7 +31,6 @@ const emitGameResults = (socket, roomId, result) => {
     result: result === "win" ? "Defeat!" : result,
   });
 };
-
 // send rematch
 const emitRematchMessage = (socket, game, players, isPlayer1) => {
   socket.emit("rematch-response", {

@@ -15,19 +15,23 @@ const snakegame = (s, game, motion, _) => {
   for (let i = snakeBody.length - 2; i >= 0; i--) {
     snakeBody[i + 1] = { ...snakeBody[i] };
   }
-  snakeBody[0].x += motion.x;
-  snakeBody[0].y += motion.y;
+  const head = { x: snakeBody[0].x + motion.x, y: snakeBody[0].y + motion.y };
+  const headIdx = findCellIdx(board, head);
+  snakeBody[0] = board[headIdx];
+
   options.lastInputDirection.push(motion);
   if (options.lastInputDirection.length > 5) {
     options.lastInputDirection.pop(0);
   }
+
   // update food
   for (let i = 0; i < food.length; i++) {
-    const f = food[i];
-    if (onSnake(snakeBody, f)) {
+    if (onSnake(snakeBody, food[i])) {
       food.pop(i);
       options.newSegment += options.expansionRate;
-      food.push(getRandomFoodPostion(board, snakeBody, options.size));
+      const coords = getRandomFoodPostion(board, snakeBody, options.size);
+      food.push(coords);
+      board = updateGrid(board, coords, "food");
     }
   }
   // check death
@@ -35,29 +39,32 @@ const snakegame = (s, game, motion, _) => {
     game.gameOver = true;
     game.gameResults = "Defeat!";
   }
-  // update board
+
+  // // update board
   for (let i = 0; i < board.length; i++) {
-    if (board[i].content === "snake") {
-      // if not included in snake body
-      const some = snakeBody.some((s) => s.uid === board[i].uid);
-      if (some) {
-        const idx = snakeBody.findIndex((s) => s.uid === board[i].uid);
-        // move snake on board
-        updateGrid(board, board[i], "");
-        board = updateGrid(board, snakeBody[idx], "snake");
-        const cellIdx = findCellIdx(board, snakeBody[idx]);
-        snakeBody[idx] = board[cellIdx];
-      }
+    // draw snake body on board
+    if (snakeBody.some((s) => s.uid === board[i].uid)) {
+      const idx = snakeBody.findIndex((s) => s.uid === board[i].uid);
+      board = updateGrid(board, snakeBody[idx], "snake");
+      // draw food on board
+    } else if (food.some((f) => f.uid === board[i].uid)) {
+      const idx = food.findIndex((s) => s.uid === board[i].uid);
+      board = updateGrid(board, food[idx], "food");
+      // erase everything else on board
+    } else if (board[i].content) {
+      updateGrid(board, board[i], "");
     }
   }
+
   return { g: game };
 };
 
 const getRandomFoodPostion = (grid, snakeBody, size) => {
-  let newFoodPostion;
-  while (newFoodPostion === null || onSnake(snakeBody, newFoodPostion)) {
-    newFoodPostion = randomGridPosition(grid, size);
+  let newFoodPosition;
+  while (!newFoodPosition || onSnake(snakeBody, newFoodPosition)) {
+    newFoodPosition = randomGridPosition(grid, size);
   }
+  return newFoodPosition;
 };
 const onSnake = (snakeBody, position, { ignoreHead = false } = {}) => {
   return snakeBody.some((s, idx) => {

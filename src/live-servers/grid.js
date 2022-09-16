@@ -14,7 +14,8 @@ const randomGridPosition = (grid, size) => {
     x: Math.floor(Math.random() * size.width) + 1,
     y: Math.floor(Math.random() * size.length) + 1,
   };
-  return grid[findCellIdx(grid, coords)];
+  const idx = findCellIdx(grid, coords);
+  return grid[idx];
 };
 const outsideGrid = (position, gridSize) => {
   return (

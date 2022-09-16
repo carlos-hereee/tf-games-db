@@ -34,6 +34,8 @@ const startGame = (socket, ticket, player) => {
   // create a game timer
   startGameTimer(socket, initialGame, 0);
 };
+
+// TODO: fix tictactoe
 const updateTicTacToe = (s, game, motion, player) => {
   const idx = getGameIndex(game.lobbyId);
   const cellIdx = games[idx].board.findIndex((c) => c.uid === motion.uid);
