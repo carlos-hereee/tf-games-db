@@ -1,10 +1,10 @@
-const { updateTicTacToe } = require("../live-servers/game");
 const { snakegame } = require("../live-servers/games/snakegame");
+const { tictactoe } = require("../live-servers/games/tictactoe");
 const { emitGameData, emitGameResults } = require("../live-servers/socketEmit");
 const { clearGameTimer } = require("./timer");
 
 const games = {
-  tictactoe: updateTicTacToe,
+  tictactoe: tictactoe,
   snakeGame: snakegame,
 };
 

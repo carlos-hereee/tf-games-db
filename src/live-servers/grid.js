@@ -39,7 +39,10 @@ const updateGrid = (grid, cell, content) => {
 };
 
 const grid = {
-  tictactoe: (init) => createGrid(init),
+  tictactoe: (init) => {
+    const grid = createGrid(init);
+    return { board: grid };
+  },
   snakeGame: (init) => {
     // initialize
     let grid = createGrid(init);
