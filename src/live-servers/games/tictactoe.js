@@ -1,20 +1,24 @@
+const { checkVictory } = require("../combination");
+const { swapTurns } = require("../game");
+
 const tictactoe = (s, game, motion, player) => {
-  const idx = getGameIndex(game.lobbyId);
-  const cellIdx = games[idx].board.findIndex((c) => c.uid === motion.uid);
+  const cellIdx = game.board.findIndex((c) => c.uid === motion.uid);
   // update board
-  games[idx].board[cellIdx] = {
-    ...games[idx].board[cellIdx],
-    hasContent: false,
+  game.board[cellIdx] = {
+    ...game.board[cellIdx],
+    hasContent: true,
     content: player.uid,
   };
-  // swap turns
-  swapTurns(game.lobby);
-  const { board, turnCount } = games[idx];
-  // return backupdated board and scoreboard tally
-  checkVictory(s, board, player, turnCount);
-  return {
-    updatedGame: games[idx],
-  };
+  // return back updated board and scoreboard tally
+  const { result } = checkVictory(game.board, player, game.turnCount);
+  if (result === "Draw!" || result === "Victory!") {
+    game.gameOver = true;
+    game.gameResults = result;
+  } else {
+    // swap turns
+    swapTurns(game);
+  }
+  return { g: game };
 };
 
 module.exports = { tictactoe };

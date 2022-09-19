@@ -1,6 +1,6 @@
 const checkVictory = (board, player, count) => {
   let scoreBoard = { x1: 0, x2: 0, x3: 0, y1: 0, y2: 0, y3: 0, z1: 0, z2: 0 };
-  if (count > 8) return "draw";
+  if (count > 8) return { result: "Draw!" };
   // update the scoreboard
   for (let i = 0; i < board.length; i++) {
     const cell = board[i];
@@ -18,8 +18,8 @@ const checkVictory = (board, player, count) => {
     }
   }
   if (Object.values(scoreBoard).includes(3)) {
-    return "win";
+    return { result: "Victory!" };
   }
-  return "continue";
+  return { result: "continue" };
 };
 module.exports = { checkVictory };

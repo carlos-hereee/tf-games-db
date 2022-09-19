@@ -32,17 +32,14 @@ const startGame = (socket, ticket, player) => {
   games.push(initialGame);
   emitGameStartData(socket, initialGame);
   // create a game timer
-  startGameTimer(socket, initialGame, 0);
+  startGameTimer(socket, initialGame);
 };
-const swapTurns = (lobbyId) => {
-  const idx = getGameIndex(lobbyId);
+const swapTurns = (game) => {
   // swap turns
-  games[idx].turn === "player1"
-    ? (games[idx].turn = "player2")
-    : (games[idx].turn = "player1");
+  game.turn === "player1" ? (game.turn = "player2") : (game.turn = "player1");
   // update the turn count
-  games[idx].turnCount += 1;
-  return games[idx];
+  game.turnCount += 1;
+  return game;
 };
 const resetGame = ({ lobbyId }) => {
   const idx = getGameIndex(lobbyId);
@@ -90,4 +87,5 @@ module.exports = {
   requestRematch,
   removeGame,
   startGame,
+  getGameIndex,
 };
