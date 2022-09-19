@@ -11,9 +11,9 @@ const tictactoe = (s, game, motion, player) => {
   };
   // return back updated board and scoreboard tally
   const { result } = checkVictory(game.board, player, game.turnCount);
-  if (result === "Draw!" || result === "Victory!") {
+  if (result === "draw" || result === "victory") {
     game.gameOver = true;
-    game.gameResults = result;
+    game.gameResult = result;
   } else {
     // swap turns
     swapTurns(game);

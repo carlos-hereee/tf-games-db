@@ -1,4 +1,5 @@
 const { v4: uuidv4 } = require("uuid");
+const { str, inverseStr } = require("./messageConfig");
 
 // send message to self
 const emitMessage = (s, player, message, roomId) => {
@@ -24,12 +25,23 @@ const emitGameStartData = (s, game) => {
   s.broadcast.to(game.lobbyId).emit("game-start", game);
 };
 // send game result
-const emitGameResults = (s, roomId, result) => {
-  s.emit("game-results", { result });
+const emitGameResults = (s, game) => {
+  const player = {
+    leftGame: false,
+    rematch: false,
+    message: str[game.gameResult].message,
+    title: str[game.gameResult].title,
+    result: game.gameResult,
+  };
+  const opponent = {
+    ...player,
+    message: str[inverseStr[game.gameResult]].message,
+    title: str[inverseStr[game.gameResult]].title,
+    result: str[inverseStr[game.gameResult]],
+  };
+  s.emit("game-results", { result: player });
   // broadcast the opposite message
-  s.broadcast.to(roomId).emit("game-results", {
-    result: result === "Victory!" ? "Defeat!" : result,
-  });
+  s.broadcast.to(game.lobbyId).emit("game-results", { result: opponent });
 };
 // send rematch
 const emitRematchMessage = (s, game, players, isPlayer1) => {

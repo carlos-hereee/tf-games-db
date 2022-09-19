@@ -15,7 +15,7 @@ const gameUpdate = (s, { game, motion, player }) => {
   if (g) {
     if (g.gameOver) {
       clearGameTimer(s, game);
-      emitGameResults(s, g.lobbyId, g.gameResults);
+      emitGameResults(s, g);
     }
     emitGameData(s, g);
   }
