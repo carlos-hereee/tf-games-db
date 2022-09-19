@@ -6,7 +6,7 @@ const { startLobbyTimer } = require("./timer");
 const newgame = (socket, { player, name, options }) => {
   // search for an open queue
   const { openTicket } = findOpenQueue(player, name);
-  startLobbyTimer(socket, player, 0);
+  startLobbyTimer(socket, player);
   if (!openTicket) {
     // add player to queue
     const { ticket } = createTicket(player, name, options);

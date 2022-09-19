@@ -5,25 +5,29 @@ const {
 
 const timers = {};
 
-const startLobbyTimer = (s, player, seconds) => {
+const startLobbyTimer = (s, player) => {
   timers[`timerLobby${player.uid}`] = setInterval(() => {
-    seconds += 1;
-    emitClockLobbyData(s, { isRunning: true, seconds });
+    const timer = Date.now();
+    emitClockLobbyData(s, { isRunning: true, timer });
   }, 1000);
 };
-const startGameTimer = (s, game, startTime) => {
+const startGameTimer = (s, game) => {
+  let startTime;
   timers[`${game.gameName}Timer${game.lobbyId}`] = setInterval(() => {
-    startTime += 1;
-    emitClockGameData(s, { startTime });
+    const timer = Date.now();
+    if (startTime === undefined) {
+      startTime = timer;
+    }
+    emitClockGameData(s, game, { isRunning: true, startTime, timer });
   }, 1000);
 };
-const clearLobbyTimer = (s, player) => {
+const clearLobbyTimer = (s, game, player) => {
   clearInterval(timers[`timerLobby${player.uid}`]);
-  emitClockLobbyData(s, { isRunning: false, seconds: 0 });
+  emitClockLobbyData(s, game, { isRunning: false, timer: 0 });
 };
 const clearGameTimer = (s, game) => {
   clearInterval(timers[`${game.gameName}Timer${game.lobbyId}`]);
-  emitClockGameData(s, { isRunning: false, seconds: 0 });
+  emitClockGameData(s, game, { isRunning: false, timer: 0 });
 };
 
 module.exports = {

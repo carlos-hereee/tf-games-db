@@ -1,7 +1,5 @@
 const {
-  findOpenQueue,
   findTicketWithPlayerId,
-  createTicket,
   cancelTicket,
 } = require("../live-servers/lobby");
 const {
@@ -13,7 +11,6 @@ const {
 const {
   emitMessage,
   emitGameData,
-  emitGameStartData,
   emitGameResults,
   emitRematchMessage,
   emitResetGame,
@@ -50,7 +47,7 @@ const socketManager = (s) => {
   s.on("game-update", (data) => gameUpdate(s, data));
   s.on("cancel-ticket", ({ ticket, player }) => {
     cancelTicket(ticket);
-    clearLobbyTimer(s, player);
+    clearLobbyTimer(s, ticket, player);
   });
   s.on("player-leave", ({ player, game }) => {
     // reset game results
