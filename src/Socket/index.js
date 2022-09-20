@@ -2,24 +2,17 @@ const {
   findTicketWithPlayerId,
   cancelTicket,
 } = require("../live-servers/lobby");
-const {
-  findGame,
-  requestRematch,
-  resetGame,
-  removeGame,
-} = require("../live-servers/game");
+const { findGame, removeGame } = require("../live-servers/game");
 const {
   emitMessage,
   emitGameData,
-  emitGameResults,
-  emitRematchMessage,
-  emitResetGame,
+  emitInitialGameResults,
   emitTicketData,
   emitMessageLeft,
 } = require("../live-servers/socketEmit.js");
-const { clearLobbyTimer } = require("./timer");
 const { newgame } = require("./newgame");
 const { gameUpdate } = require("./gameUpdate");
+const { rematch } = require("./rematch");
 
 const initialConnection = (socket, playerId) => {
   if (playerId) {
@@ -45,28 +38,15 @@ const socketManager = (s) => {
   initialConnection(s, playerId);
   s.on("game-new", (data) => newgame(s, data));
   s.on("game-update", (data) => gameUpdate(s, data));
-  s.on("cancel-ticket", ({ ticket, player }) => {
-    cancelTicket(ticket);
-    clearLobbyTimer(s, ticket, player);
-  });
+  s.on("cancel-ticket", (data) => cancelTicket(s, data));
+  s.on("rematch", (data) => rematch(s, data));
   s.on("player-leave", ({ player, game }) => {
     // reset game results
-    emitGameResults(s, game.lobbyId, "");
+    emitInitialGameResults(s, game.lobbyId, "");
     s.leave(game.lobbyId);
     // delete game
     removeGame(game);
     emitMessageLeft(s, game, player);
-  });
-
-  s.on("request-rematch", ({ game, isPlayer1 }) => {
-    const { players } = requestRematch(game, isPlayer1);
-    if (players.player2.rematch && players.player1.rematch) {
-      const { reset } = resetGame(game);
-      // send reset game to both player
-      emitResetGame(s, reset);
-    } else {
-      emitRematchMessage(s, game, players, isPlayer1);
-    }
   });
 };
 

@@ -24,40 +24,43 @@ const emitGameStartData = (s, game) => {
   s.emit("game-start", game);
   s.broadcast.to(game.lobbyId).emit("game-start", game);
 };
-// send game result
-const emitGameResults = (s, game) => {
+// send game initial result
+const emitInitialGameResults = (s, game) => {
   const player = {
     leftGame: false,
     rematch: false,
+    result: str[game.gameResult],
     message: str[game.gameResult].message,
-    title: str[game.gameResult].title,
-    result: game.gameResult,
   };
   const opponent = {
-    ...player,
-    message: str[inverseStr[game.gameResult]].message,
-    title: str[inverseStr[game.gameResult]].title,
+    leftGame: false,
+    rematch: false,
     result: str[inverseStr[game.gameResult]],
+    message: str[inverseStr[game.gameResult]].message,
   };
   s.emit("game-results", { result: player });
   // broadcast the opposite message
   s.broadcast.to(game.lobbyId).emit("game-results", { result: opponent });
 };
 // send rematch
-const emitRematchMessage = (s, game, players, isPlayer1) => {
-  s.emit("rematch-response", {
-    message: `${
-      isPlayer1 ? players.player1.nickname : players.player2.nickname
-    } ${players.player1.rematch ? "requested" : "canceled"} rematch`,
-    players,
-  });
-  s.broadcast.to(game.lobbyId).emit("rematch-response", {
-    message: `${
-      isPlayer1 ? players.player1.nickname : players.player2.nickname
-    } ${players.player1.rematch ? "requested" : "canceled"} rematch`,
-    players,
-  });
+const emitRematch = (s, game, isPlayer1) => {
+  console.log("game.player1.rematch", game.player1.rematch);
+  const player = {
+    message: `${isPlayer1 ? game.player1.nickname : game.player2.nickname} ${
+      isPlayer1 && game.player1.rematch ? "requested" : "canceled"
+    } rematch`,
+    game,
+  };
+  const opponent = {
+    message: `${isPlayer1 ? game.player1.nickname : game.player2.nickname} ${
+      !isPlayer1 && game.player2.rematch ? "requested" : "canceled"
+    } rematch`,
+    game,
+  };
+  s.emit("rematch", { result: player });
+  s.broadcast.to(game.lobbyId).emit("rematch", { result: opponent });
 };
+
 // send rematch
 const emitMessageLeft = (s, data, player) => {
   s.emit("player-left", { show: false });
@@ -84,8 +87,8 @@ module.exports = {
   emitMessage,
   emitGameStartData,
   emitGameData,
-  emitGameResults,
-  emitRematchMessage,
+  emitInitialGameResults,
+  emitRematch,
   emitResetGame,
   emitTicketData,
   emitMessageLeft,

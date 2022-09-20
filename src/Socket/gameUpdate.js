@@ -1,6 +1,9 @@
 const { snakegame } = require("../live-servers/games/snakegame");
 const { tictactoe } = require("../live-servers/games/tictactoe");
-const { emitGameData, emitGameResults } = require("../live-servers/socketEmit");
+const {
+  emitGameData,
+  emitInitialGameResults,
+} = require("../live-servers/socketEmit");
 const { clearGameTimer } = require("./timer");
 
 const games = {
@@ -15,7 +18,7 @@ const gameUpdate = (s, { game, motion, player }) => {
   if (g) {
     if (g.gameOver) {
       clearGameTimer(s, game);
-      emitGameResults(s, g);
+      emitInitialGameResults(s, g);
     }
     emitGameData(s, g);
   }

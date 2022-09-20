@@ -63,15 +63,6 @@ const resetGame = ({ lobbyId }) => {
 
   return { reset: games[idx] };
 };
-const requestRematch = (game, isPlayer1) => {
-  const idx = getGameIndex(game.lobbyId);
-  isPlayer1
-    ? (games[idx].players.player1.rematch = !games[idx].players.player1.rematch)
-    : (games[idx].players.player2.rematch =
-        !games[idx].players.player2.rematch);
-
-  return { players: games[idx].players };
-};
 const removeGame = (game) => {
   const idx = getGameIndex(game.lobbyId);
   if (games[idx]) {
@@ -84,7 +75,6 @@ module.exports = {
   checkVictory,
   swapTurns,
   resetGame,
-  requestRematch,
   removeGame,
   startGame,
   getGameIndex,

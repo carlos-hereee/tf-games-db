@@ -1,4 +1,5 @@
 const { v4: uuidv4 } = require("uuid");
+const { clearLobbyTimer } = require("../Socket/timer");
 
 const tickets = [];
 const singlePlayer = ["snakeGame"];
@@ -35,9 +36,10 @@ const createTicket = (player, gameName, options) => {
   return { ticket: tickets[idx] };
 };
 
-const cancelTicket = (ticket) => {
+const cancelTicket = (s, { ticket, player }) => {
   const idx = tickets.findIndex((i) => i.lobbyId === ticket?.lobbyId);
   tickets.pop(tickets[idx]);
+  clearLobbyTimer(s, ticket, player);
 };
 
 module.exports = {
