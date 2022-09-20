@@ -13,7 +13,6 @@ const snakegame = (s, game, motion, _) => {
   const sinceLastTime = (currentTime - game.lastTimeRender) / 1000;
   if (sinceLastTime < 1 / options.snakeSpeed) return { g: game };
   game.lastTimeRender = currentTime;
-
   for (i = 0; i < options.newSegment; i++) {
     snakeBody.push([{ ...snakeBody[snakeBody.length - 1] }]);
   }
@@ -24,15 +23,12 @@ const snakegame = (s, game, motion, _) => {
   const head = { x: snakeBody[0].x + motion.x, y: snakeBody[0].y + motion.y };
   const headIdx = findCellIdx(board, head);
   snakeBody[0] = board[headIdx];
+  options.lastInputDirection = motion;
 
-  options.lastInputDirection.push(motion);
-  if (options.lastInputDirection.length > 5) {
-    options.lastInputDirection.pop(0);
-  }
   // check death
   if (outsideGrid(snakeBody[0], options.size) || isCrash(snakeBody)) {
     game.gameOver = true;
-    game.gameResults = "Defeat!";
+    game.gameResults = "defeat";
     return { g: game };
   }
   // update food
