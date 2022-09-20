@@ -41,27 +41,20 @@ const swapTurns = (game) => {
   game.turnCount += 1;
   return game;
 };
-const resetGame = ({ lobbyId }) => {
-  const idx = getGameIndex(lobbyId);
-  let newBoard = grid[games[idx].gameName].map((i) => {
-    if (!i.hasContent || i.content) {
-      return { ...i, hasContent: true, content: "" };
-    }
-    return i;
-  });
-  const { player1, player2 } = games[idx].players;
+const resetGame = (game) => {
+  let newBoard = grid[game.gameName](game.options.size);
   // which swap players position so x is o and o is x
-  games[idx].players.player1 = player2;
-  games[idx].players.player2 = player1;
+  game.player1 = player2;
+  game.player2 = player1;
   // reset board
-  games[idx].board = newBoard;
-  games[idx].turnCount = 0;
-  games[idx].round += 1;
-  games[idx].turn = "player1";
-  games[idx].players.player1.rematch = false;
-  games[idx].players.player2.rematch = false;
+  game.board = newBoard;
+  game.turnCount = 0;
+  game.round += 1;
+  game.turn = "player1";
+  game.player1.rematch = false;
+  game.player2.rematch = false;
 
-  return { reset: games[idx] };
+  return { reset: game };
 };
 const removeGame = (game) => {
   const idx = getGameIndex(game.lobbyId);

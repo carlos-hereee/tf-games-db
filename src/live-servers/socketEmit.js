@@ -44,21 +44,18 @@ const emitInitialGameResults = (s, game) => {
 };
 // send rematch
 const emitRematch = (s, game, isPlayer1) => {
-  console.log("game.player1.rematch", game.player1.rematch);
-  const player = {
+  const result = {
     message: `${isPlayer1 ? game.player1.nickname : game.player2.nickname} ${
-      isPlayer1 && game.player1.rematch ? "requested" : "canceled"
+      isPlayer1 && game.player1.rematch
+        ? "requested"
+        : !isPlayer1 && game.player2.rematch
+        ? "requested"
+        : "canceled"
     } rematch`,
     game,
   };
-  const opponent = {
-    message: `${isPlayer1 ? game.player1.nickname : game.player2.nickname} ${
-      !isPlayer1 && game.player2.rematch ? "requested" : "canceled"
-    } rematch`,
-    game,
-  };
-  s.emit("rematch", { result: player });
-  s.broadcast.to(game.lobbyId).emit("rematch", { result: opponent });
+  s.emit("rematch", { result });
+  s.broadcast.to(game.lobbyId).emit("rematch", { result });
 };
 
 // send rematch
