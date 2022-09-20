@@ -54,10 +54,15 @@ const emitRematch = (s, game, isPlayer1) => {
     } rematch`,
     game,
   };
-  s.emit("rematch", { result });
-  s.broadcast.to(game.lobbyId).emit("rematch", { result });
+  s.emit("rematch", {
+    ...result,
+    rematch: isPlayer1 ? game.player1.rematch : game.player2.rematch,
+  });
+  s.broadcast.to(game.lobbyId).emit("rematch", {
+    ...result,
+    rematch: isPlayer1 ? game.player2.rematch : game.player1.rematch,
+  });
 };
-
 // send rematch
 const emitMessageLeft = (s, data, player) => {
   s.emit("player-left", { show: false });

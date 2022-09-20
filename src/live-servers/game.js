@@ -43,6 +43,7 @@ const swapTurns = (game) => {
 };
 const resetGame = (game) => {
   let newBoard = grid[game.gameName](game.options.size);
+  const { player1, player2 } = game;
   // which swap players position so x is o and o is x
   game.player1 = player2;
   game.player2 = player1;
@@ -53,6 +54,7 @@ const resetGame = (game) => {
   game.turn = "player1";
   game.player1.rematch = false;
   game.player2.rematch = false;
+  game.gameOver = false;
 
   return { reset: game };
 };
