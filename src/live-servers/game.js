@@ -1,21 +1,13 @@
 const { checkVictory } = require("./combination");
-const { boards } = require("./boards");
+const { grid } = require("./grid");
+const { emitGameStartData } = require("./socketEmit");
+const { startGameTimer } = require("../Socket/timer");
 const games = [];
 
-const createGame = (board, players) => {
-  const game = {
-    ...board,
-    players,
-    turn: "player1",
-    turnCount: 0,
-  };
-  games.push(game);
-  return { game };
-};
 const findGame = (id) => {
   // find player within the list of games
-  const res = games.filter(({ players }) => {
-    return players.player1?.uid === id || players.player2.uid === id;
+  const res = games.filter(({ player1, player2 }) => {
+    return player1?.uid === id || player2.uid === id;
   })[0];
   if (res) {
     return { game: res };
@@ -25,83 +17,48 @@ const findGame = (id) => {
 const getGameIndex = (lobbyId) => {
   return games.findIndex((game) => game.lobbyId === lobbyId);
 };
-const startGame = (ticket, player) => {
-  // create empty game board
-  const b = boards[ticket.gameName];
-  const empty = {
-    lobbyId: ticket.lobbyId,
-    gameName: ticket.gameName,
-    board: b?.map((i) => {
-      if (!i.isEmpty || i.content) {
-        return { ...i, isEmpty: true, content: "" };
-      }
-      return i;
-    }),
+const startGame = (socket, ticket, player) => {
+  // create initial game grid
+  const b = grid[ticket.gameName](ticket.options.size);
+  const initialGame = {
+    ...ticket,
+    ...b,
+    player1: ticket.createdBy,
+    player2: ticket.singlePlayer ? {} : player,
+    turn: "player1",
+    turnCount: 0,
+    round: 1,
+    gameOver: false,
   };
-  // populate player data
-  const playerData = { player1: ticket.createdBy, player2: player };
-  const { game } = createGame(empty, playerData);
-  return { game };
+  games.push(initialGame);
+  emitGameStartData(socket, initialGame);
+  // create a game timer
+  startGameTimer(socket, initialGame);
 };
-const updateGameboard = ({ lobbyId }, cell, player) => {
-  const idx = getGameIndex(lobbyId);
-  const cellIdx = games[idx].board.findIndex((c) => c.uid === cell.uid);
-  // update board
-  games[idx].board[cellIdx] = {
-    ...games[idx].board[cellIdx],
-    isEmpty: false,
-    content: player.uid,
-  };
+const swapTurns = (game) => {
   // swap turns
-  swapTurns(lobbyId);
-  const { board, turnCount } = games[idx];
-  // return backupdated board and scoreboard tally
-  return {
-    updatedGame: games[idx],
-    result: checkVictory(board, player, turnCount),
-  };
-};
-const swapTurns = (lobbyId) => {
-  const idx = getGameIndex(lobbyId);
-  // swap turns
-  games[idx].turn === "player1"
-    ? (games[idx].turn = "player2")
-    : (games[idx].turn = "player1");
+  game.turn === "player1" ? (game.turn = "player2") : (game.turn = "player1");
   // update the turn count
-  games[idx].turnCount += 1;
-  return games[idx];
+  game.turnCount += 1;
+  return game;
 };
-
-const resetGame = ({ lobbyId }) => {
-  const idx = getGameIndex(lobbyId);
-  let newBoard = boards[games[idx].gameName].map((i) => {
-    if (!i.isEmpty || i.content) {
-      return { ...i, isEmpty: true, content: "" };
-    }
-    return i;
-  });
-  const { player1, player2 } = games[idx].players;
+const resetGame = (game) => {
+  let newBoard = grid[game.gameName](game.options.size);
+  const { player1, player2 } = game;
   // which swap players position so x is o and o is x
-  games[idx].players.player1 = player2;
-  games[idx].players.player2 = player1;
+  game.player1 = player2;
+  game.player2 = player1;
   // reset board
-  games[idx].board = newBoard;
-  games[idx].turnCount = 0;
-  games[idx].round += 1;
-  games[idx].turn = "player1";
-  games[idx].players.player1.rematch = false;
-  games[idx].players.player2.rematch = false;
+  game.board = newBoard.board;
+  game.turnCount = 0;
+  game.round += 1;
+  game.turn = "player1";
+  game.player1.rematch = false;
+  game.player2.rematch = false;
+  game.gameOver = false;
+  game.gameResult = "";
 
-  return { reset: games[idx] };
-};
-const requestRematch = (game, isPlayer1) => {
-  const idx = getGameIndex(game.lobbyId);
-  isPlayer1
-    ? (games[idx].players.player1.rematch = !games[idx].players.player1.rematch)
-    : (games[idx].players.player2.rematch =
-        !games[idx].players.player2.rematch);
-
-  return { players: games[idx].players };
+  return { reset: game };
 };
 const removeGame = (game) => {
   const idx = getGameIndex(game.lobbyId);
@@ -111,13 +68,11 @@ const removeGame = (game) => {
 };
 
 module.exports = {
-  createGame,
   findGame,
-  updateGameboard,
   checkVictory,
   swapTurns,
   resetGame,
-  requestRematch,
   removeGame,
   startGame,
+  getGameIndex,
 };

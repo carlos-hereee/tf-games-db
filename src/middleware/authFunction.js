@@ -1,9 +1,12 @@
 const jwt = require("jsonwebtoken");
+
 const useableUserData = (user) => {
   return {
     username: user.username,
     elo: user.elo,
     uid: user.uid,
+    nickname: user.nickname,
+    isOnline: user.isOnline,
   };
 };
 // generate token

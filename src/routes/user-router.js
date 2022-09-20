@@ -1,7 +1,6 @@
 const router = require("express").Router();
 const Users = require("../models/users");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const registrationCred = require("../middleware/registrationCred");
 const authenticate = require("../middleware/authenticate");
@@ -9,28 +8,26 @@ const {
   useableUserData,
   generateAccessToken,
   generateRefreshToken,
-  refreshTokenSecret,
-} = require("../middleware/usefulFunctions");
+} = require("../middleware/authFunction");
+const validateCookie = require("../middleware/validateCookie");
+
+// custom middleware
+const validateUser = [authenticate, validateCookie];
+
+const changeOnline = async (isOnline, _id) => {
+  await Users.updateOne({ _id }, { $set: { isOnline } });
+};
 
 router.get("/", authenticate, async (req, res) => {
-  const { uid, username, email } = req.user;
-  // get users data
-  try {
-    const user = await Users.findOne({
-      $or: [{ uid }, { username }, { email }],
-    });
-    res.status(200).json({ message: useableUserData(user) });
-  } catch {
-    res.status(404).json({ message: "user not found" });
-  }
+  res.status(200).json(useableUserData(req.user));
 });
-router.get("/:uid", authenticate, async (req, res) => {
+router.get("/:uid", validateUser, async (req, res) => {
   const { uid } = req.params;
   try {
-    const user = await Users.find({ uid });
-    if (user[0].uid) {
+    const user = await Users.findOne({ uid });
+    if (user) {
       res.status(200).json({
-        message: useableUserData(user[0]),
+        message: useableUserData(user),
       });
     }
   } catch {
@@ -39,66 +36,59 @@ router.get("/:uid", authenticate, async (req, res) => {
     });
   }
 });
-// make a new user
 router.post("/register", registrationCred, async (req, res) => {
   let user = req.body;
   user.password = bcrypt.hashSync(user.password, 10);
   user.uid = uuidv4();
+  user.nickname = user.username;
+  user.isOnline = true;
   try {
     const newUser = await new Users(user).save();
-    if (newUser.uid) {
-      const refreshToken = generateRefreshToken(newUser);
-      const accessToken = generateAccessToken(newUser);
-      res.cookie("secret-cookie", refreshToken, { httpOnly: true });
-      return res.status(200).json({
-        user: useableUserData(response),
-        accessToken: accessToken,
-      });
-    }
+    const refreshToken = generateRefreshToken(newUser);
+    const accessToken = generateAccessToken(newUser);
+    res.cookie("secret-cookie", refreshToken, { httpOnly: true });
+    res.status(200).json({ user: useableUserData(newUser), accessToken });
   } catch (e) {
     res.status(400).json({ message: "Failed to make user" });
   }
 });
 router.post("/login", async (req, res) => {
   let { username, password } = req.body;
-  const user = await Users.findOne({ username });
   try {
+    const user = await Users.findOne({ username });
     if (bcrypt.compareSync(password, user.password)) {
       const refreshToken = generateRefreshToken(user);
       const accessToken = generateAccessToken(user);
-      res.cookie("secret-cookie", refreshToken, { httpOnly: true });
-      return res.status(200).json({
-        user: useableUserData(user),
-        accessToken: accessToken,
-      });
+      changeOnline(true, user._id);
+      const data = await Users.findOne({ username });
+      res.status(200).cookie("secret-cookie", refreshToken, { httpOnly: true });
+      res.json({ user: useableUserData(data), accessToken: accessToken });
     } else {
-      return res.status(404).json({
-        message: "username or password are invalid",
-      });
+      res.status(404).json({ message: "username or password are invalid" });
     }
   } catch {
-    return res.status(400).json({ message: "user does not exist" });
+    res.status(400).json({ message: "User does not exist" });
   }
 });
-
-router.post("/refresh-token", async (req, res) => {
-  const token = req.cookies["secret-cookie"];
-  if (!token) {
-    // no cookie
-    return res.status(400).json({ accessToken: "" });
-  }
-  let payload = jwt.verify(token, refreshTokenSecret);
-  const user = await Users.findOne({
-    $or: [{ username: payload.username }, { uid: payload.uid }],
-  });
-  if (!user) {
-    return res.status(400).json({ accessToken: "" });
-  }
-  // token is valid and we send an access token
+router.post("/refresh-token", validateUser, async (req, res) => {
+  const { user } = req;
+  // token is valid and send an access token
   const refreshToken = generateRefreshToken(user);
   const accessToken = generateAccessToken(user);
-  res.cookie("secret-cookie", refreshToken, { httpOnly: true });
-  res.status(200).json({ accessToken: accessToken, user: { uid: user.uid } });
+  res.cookie("secret-cookie", refreshToken, { httpOnly: true }).status(200);
+  res.json({ accessToken: accessToken, user: useableUserData(user) });
+});
+router.delete("/logout", validateUser, async (req, res) => {
+  try {
+    changeOnline(false, req.user._id);
+    if (req.session) {
+      req.session.destroy();
+    }
+    res.clearCookie("secret-cookie");
+    res.status(202).json({ message: "successful logout" });
+  } catch {
+    res.status(400).json({ message: "error loggin out" });
+  }
 });
 
 module.exports = router;

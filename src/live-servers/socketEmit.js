@@ -1,80 +1,99 @@
 const { v4: uuidv4 } = require("uuid");
+const { str, inverseStr } = require("./messageConfig");
 
 // send message to self
-const emitMessage = (socket, player, message, roomId) => {
-  socket.emit("receive-message", {
+const emitMessage = (s, player, message, roomId) => {
+  s.emit("receive-message", {
     id: uuidv4(),
     player,
     message: `${player?.nickname} ${message}`,
   });
-  socket.broadcast.to(roomId).emit("receive-message", {
+  s.broadcast.to(roomId).emit("receive-message", {
     id: uuidv4(),
     player: { nickname: "Admin", uid: "silent-code" },
     message,
   });
 };
-
 // send game data to client
-const emitGameData = (socket, game) => {
-  socket.emit("game-data", game);
-  socket.broadcast.to(game.lobbyId).emit("game-data", game);
+const emitGameData = (s, game) => {
+  s.emit("game-data", game);
+  s.broadcast.to(game.lobbyId).emit("game-data", game);
 };
-
 // send game data to client
-const emitGameStartData = (socket, game) => {
-  socket.emit("game-start", game);
-  socket.broadcast.to(game.lobbyId).emit("game-start", game);
+const emitResetData = (s, game) => {
+  s.emit("game-reset", game);
+  s.broadcast.to(game.lobbyId).emit("game-reset", game);
 };
-
-// send game result
-const emitGameResults = (socket, roomId, result) => {
-  socket.emit("game-results", { result });
+// send game data to client
+const emitGameStartData = (s, game) => {
+  s.emit("game-start", game);
+  s.broadcast.to(game.lobbyId).emit("game-start", game);
+};
+// send game initial result
+const emitInitialGameResults = (s, game) => {
+  const player = {
+    leftGame: false,
+    rematch: false,
+    result: str[game.gameResult],
+    message: str[game.gameResult].message,
+  };
+  const opponent = {
+    leftGame: false,
+    rematch: false,
+    result: str[inverseStr[game.gameResult]],
+    message: str[inverseStr[game.gameResult]].message,
+  };
+  s.emit("game-results", { result: player });
   // broadcast the opposite message
-  socket.broadcast.to(roomId).emit("game-results", {
-    result: result === "win" ? "lose" : result,
-  });
-};
-
-// send rematch
-const emitRematchMessage = (socket, game, players, isPlayer1) => {
-  socket.emit("rematch-response", {
-    message: `${
-      isPlayer1 ? players.player1.nickname : players.player2.nickname
-    } ${players.player1.rematch ? "requested" : "canceled"} rematch`,
-    players,
-  });
-  socket.broadcast.to(game.lobbyId).emit("rematch-response", {
-    message: `${
-      isPlayer1 ? players.player1.nickname : players.player2.nickname
-    } ${players.player1.rematch ? "requested" : "canceled"} rematch`,
-    players,
-  });
+  s.broadcast.to(game.lobbyId).emit("game-results", { result: opponent });
 };
 // send rematch
-const emitMessageLeft = (socket, data, player) => {
-  socket.broadcast.to(data.lobbyId).emit("left-response", {
+const emitRematch = (s, game, isPlayer1) => {
+  const result = {
+    message: `${isPlayer1 ? game.player1.nickname : game.player2.nickname} ${
+      isPlayer1 && game.player1.rematch
+        ? "requested"
+        : !isPlayer1 && game.player2.rematch
+        ? "requested"
+        : "canceled"
+    } rematch`,
+    game,
+  };
+  s.emit("rematch", {
+    ...result,
+    rematch: isPlayer1 ? game.player1.rematch : game.player2.rematch,
+  });
+  s.broadcast.to(game.lobbyId).emit("rematch", {
+    ...result,
+    rematch: isPlayer1 ? game.player2.rematch : game.player1.rematch,
+  });
+};
+// send rematch
+const emitMessageLeft = (s, game, player) => {
+  s.emit("player-left");
+  s.broadcast.to(game.lobbyId).emit("opponent-left", {
     message: `${player.nickname} left`,
   });
 };
-// send rematch notice to self
-const emitResetGame = (socket, game) => {
-  socket.emit("game-reset-response", game);
-  socket.broadcast.to(game.lobbyId).emit("game-reset-response", game);
+const emitTicketData = (s, ticket) => {
+  s.emit("ticket-data", ticket);
 };
-const emitTicketData = (socket, ticket) => {
-  socket.emit("ticket-data", ticket);
+const emitClockLobbyData = (s, clockData) => {
+  s.emit("lobby-clock-data", clockData);
 };
-const emitClockLobbyData = (socket, clockData) => {
-  socket.emit("clock-lobby-data", clockData);
+const emitClockGameData = (s, { lobbyId }, clockData) => {
+  s.emit("game-clock-data", clockData);
+  s.broadcast.to(lobbyId).emit("game-clock-data", clockData);
 };
 module.exports = {
   emitMessage,
+  emitGameStartData,
   emitGameData,
-  emitGameResults,
-  emitRematchMessage,
-  emitResetGame,
+  emitInitialGameResults,
+  emitRematch,
   emitTicketData,
+  emitResetData,
   emitMessageLeft,
   emitClockLobbyData,
-  emitGameStartData,
+  emitClockGameData,
 };

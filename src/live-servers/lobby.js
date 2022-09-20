@@ -1,6 +1,11 @@
 const { v4: uuidv4 } = require("uuid");
+const { clearLobbyTimer } = require("../Socket/timer");
+const { emitTicketData } = require("./socketEmit");
 
 const tickets = [];
+const singlePlayer = ["snakeGame"];
+const twoPlayer = ["tictactoe"];
+
 const findOpenQueue = (player, gameName) => {
   // search for someone already waiting in the queue
   const openTicket = tickets.filter(
@@ -18,16 +23,25 @@ const findTicketWithPlayerId = (playerId) => {
 const findIndex = (id) => {
   return tickets.findIndex((ticket) => ticket.lobbyId === id);
 };
-const createTicket = (player, gameName) => {
-  const data = { lobbyId: uuidv4(), gameName, createdBy: player };
+
+const createTicket = (player, gameName, options) => {
+  const data = {
+    lobbyId: uuidv4(),
+    gameName,
+    options,
+    createdBy: player,
+    singlePlayer: singlePlayer.includes(gameName) ? true : false,
+  };
   tickets.push(data);
   const idx = findIndex(data.lobbyId);
   return { ticket: tickets[idx] };
 };
 
-const cancelTicket = (ticket) => {
+const cancelTicket = (s, { ticket, player }) => {
   const idx = tickets.findIndex((i) => i.lobbyId === ticket?.lobbyId);
   tickets.pop(tickets[idx]);
+  emitTicketData(s, {});
+  clearLobbyTimer(s, ticket, player);
 };
 
 module.exports = {
