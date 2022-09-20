@@ -2,17 +2,16 @@ const {
   findTicketWithPlayerId,
   cancelTicket,
 } = require("../live-servers/lobby");
-const { findGame, removeGame } = require("../live-servers/game");
+const { findGame } = require("../live-servers/game");
 const {
   emitMessage,
   emitGameData,
-  emitInitialGameResults,
   emitTicketData,
-  emitMessageLeft,
 } = require("../live-servers/socketEmit.js");
 const { newgame } = require("./newgame");
 const { gameUpdate } = require("./gameUpdate");
 const { rematch } = require("./rematch");
+const { leaveGame } = require("./leaveGame");
 
 const initialConnection = (socket, playerId) => {
   if (playerId) {
@@ -40,14 +39,7 @@ const socketManager = (s) => {
   s.on("game-update", (data) => gameUpdate(s, data));
   s.on("cancel-ticket", (data) => cancelTicket(s, data));
   s.on("rematch", (data) => rematch(s, data));
-  s.on("player-leave", ({ player, game }) => {
-    // reset game results
-    emitInitialGameResults(s, game.lobbyId, "");
-    s.leave(game.lobbyId);
-    // delete game
-    removeGame(game);
-    emitMessageLeft(s, game, player);
-  });
+  s.on("game-leave", (data) => leaveGame(s, data));
 };
 
 module.exports = { socketManager };

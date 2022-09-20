@@ -20,6 +20,11 @@ const emitGameData = (s, game) => {
   s.broadcast.to(game.lobbyId).emit("game-data", game);
 };
 // send game data to client
+const emitResetData = (s, game) => {
+  s.emit("game-reset", game);
+  s.broadcast.to(game.lobbyId).emit("game-reset", game);
+};
+// send game data to client
 const emitGameStartData = (s, game) => {
   s.emit("game-start", game);
   s.broadcast.to(game.lobbyId).emit("game-start", game);
@@ -64,16 +69,11 @@ const emitRematch = (s, game, isPlayer1) => {
   });
 };
 // send rematch
-const emitMessageLeft = (s, data, player) => {
-  s.emit("player-left", { show: false });
-  s.broadcast.to(data.lobbyId).emit("left-response", {
+const emitMessageLeft = (s, game, player) => {
+  s.emit("player-left");
+  s.broadcast.to(game.lobbyId).emit("opponent-left", {
     message: `${player.nickname} left`,
   });
-};
-// send rematch notice to self
-const emitResetGame = (s, game) => {
-  s.emit("game-reset-response", game);
-  s.broadcast.to(game.lobbyId).emit("game-reset-response", game);
 };
 const emitTicketData = (s, ticket) => {
   s.emit("ticket-data", ticket);
@@ -91,8 +91,8 @@ module.exports = {
   emitGameData,
   emitInitialGameResults,
   emitRematch,
-  emitResetGame,
   emitTicketData,
+  emitResetData,
   emitMessageLeft,
   emitClockLobbyData,
   emitClockGameData,

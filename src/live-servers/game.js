@@ -27,6 +27,7 @@ const startGame = (socket, ticket, player) => {
     player2: ticket.singlePlayer ? {} : player,
     turn: "player1",
     turnCount: 0,
+    round: 1,
     gameOver: false,
   };
   games.push(initialGame);
@@ -48,13 +49,14 @@ const resetGame = (game) => {
   game.player1 = player2;
   game.player2 = player1;
   // reset board
-  game.board = newBoard;
+  game.board = newBoard.board;
   game.turnCount = 0;
   game.round += 1;
   game.turn = "player1";
   game.player1.rematch = false;
   game.player2.rematch = false;
   game.gameOver = false;
+  game.gameResult = "";
 
   return { reset: game };
 };

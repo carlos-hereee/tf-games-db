@@ -1,5 +1,5 @@
 const { resetGame } = require("../live-servers/game");
-const { emitRematch, emitResetGame } = require("../live-servers/socketEmit");
+const { emitRematch, emitResetData } = require("../live-servers/socketEmit");
 
 const rematch = (s, { game, player }) => {
   const isPlayer1 = game.player1.uid === player.uid;
@@ -11,7 +11,7 @@ const rematch = (s, { game, player }) => {
   if (game.player2.rematch && game.player1.rematch) {
     // send reset game to both player
     const { reset } = resetGame(game);
-    emitResetGame(s, reset);
+    emitResetData(s, reset);
   } else {
     emitRematch(s, game, isPlayer1);
   }
