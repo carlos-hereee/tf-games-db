@@ -36,7 +36,10 @@ mongoose
   .connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     server.listen(port, () => {
-      console.log(`\n *** Server listening on port ${port} *** \n`);
+      if (process.env.NODE_ENV === "development")
+        console.log(`\n *** Server listening on port ${port} *** \n`);
     });
   })
-  .catch((e) => console.log("e", e));
+  .catch((e) => {
+    if (process.env.NODE_ENV === "development") console.log("e", e);
+  });

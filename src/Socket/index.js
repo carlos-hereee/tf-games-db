@@ -16,7 +16,9 @@ const { leaveGame } = require("./leaveGame");
 const initialConnection = (socket, playerId) => {
   if (playerId) {
     socket.join(playerId);
-    console.log(`connection made on socket id : ${playerId}`);
+    if (process.env.NODE_ENV === "developement") {
+      console.log(`connection made on socket id : ${playerId}`);
+    }
     const { ticket } = findTicketWithPlayerId(playerId);
     if (ticket?.createdBy?.uid) {
       emitTicketData(socket, ticket);

@@ -47,12 +47,8 @@ const checkSegments = (_, snakeBody, options, motion) => {
   }
   // move body
   for (let i = snakeBody.length - 2; i >= 0; i--) {
-    console.log("snakeBody -length 2", i);
     snakeBody[i + 1] = { ...snakeBody[i] };
   }
-  // const head = { x: snakeBody[0].x + motion.x, y: snakeBody[0].y + motion.y };
-  // const idx = findCellIdx(board, head);
-  // snakeBody[0] = board[idx];
   snakeBody[0].x += motion.x;
   snakeBody[0].y += motion.y;
 };

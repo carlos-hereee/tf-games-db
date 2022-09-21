@@ -16,7 +16,6 @@ const gameUpdate = (s, { game, motion, player }) => {
   games[game.gameName](s, game, motion, player);
   // check for win
   if (game.gameOver) {
-    console.log("game.gameOver", game.gameOver);
     clearGameTimer(s, game);
     emitInitialGameResults(s, game);
   }
