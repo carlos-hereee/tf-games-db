@@ -35,7 +35,6 @@ const updateGrid = (grid, cell, content) => {
     grid[idx].content = content;
     grid[idx].hasContent = content ? true : false;
   }
-  return grid;
 };
 
 const grid = {
