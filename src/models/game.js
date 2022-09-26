@@ -6,7 +6,7 @@ const gameSchema = new Schema(
     uid: { type: String, required: true, unique: true },
     isUse: { type: Boolean },
     gameName: { type: String },
-    board: [
+    grid: [
       {
         cell: {
           x: { type: Number },

@@ -11,9 +11,9 @@ const games = {
   snakeGame: snakegame,
 };
 
-const gameUpdate = (s, { game, motion, player }) => {
-  // updated the game board
-  games[game.gameName](s, game, motion, player);
+const gameUpdate = (s, { game, inputDirection, player }) => {
+  // updated the game grid
+  games[game.gameName](s, game, inputDirection, player);
   // check for win
   if (game.gameOver) {
     clearGameTimer(s, game);

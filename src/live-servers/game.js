@@ -48,8 +48,8 @@ const resetGame = (game) => {
   // which swap players position so x is o and o is x
   game.player1 = player2;
   game.player2 = player1;
-  // reset board
-  game.board = newBoard.board;
+  // reset grid
+  game.grid = newBoard.grid;
   game.turnCount = 0;
   game.round += 1;
   game.turn = "player1";

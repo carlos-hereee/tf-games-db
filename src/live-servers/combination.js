@@ -1,9 +1,9 @@
-const checkVictory = (board, player, count) => {
+const checkVictory = (grid, player, count) => {
   let scoreBoard = { x1: 0, x2: 0, x3: 0, y1: 0, y2: 0, y3: 0, z1: 0, z2: 0 };
   if (count > 8) return { result: "draw" };
   // update the scoreboard
-  for (let i = 0; i < board.length; i++) {
-    const cell = board[i];
+  for (let i = 0; i < grid.length; i++) {
+    const cell = grid[i];
     if (cell.content === player.uid) {
       // log each row
       scoreBoard[`x${cell.x}`] += 1;

@@ -1,21 +1,19 @@
 const { v4: uuidv4 } = require("uuid");
 
 const createGrid = ({ length, width }) => {
-  let board = [];
+  let grid = [];
   for (let x = 1; x < length + 1; x++) {
     for (let y = 1; y < width + 1; y++) {
-      board.push({ x, y, hasContent: false, content: "", uid: uuidv4() });
+      grid.push({ x, y, hasContent: false, content: "", uid: uuidv4() });
     }
   }
-  return board;
+  return grid;
 };
-const randomGridPosition = (grid, size) => {
-  let coords = {
+const randomGridPosition = (size) => {
+  return {
     x: Math.floor(Math.random() * size.width) + 1,
     y: Math.floor(Math.random() * size.length) + 1,
   };
-  const idx = findCellIdx(grid, coords);
-  return grid[idx];
 };
 const outsideGrid = (position, gridSize) => {
   if (!position) return true;
@@ -40,16 +38,16 @@ const updateGrid = (grid, cell, content) => {
 const grid = {
   tictactoe: (init) => {
     const grid = createGrid(init);
-    return { board: grid };
+    return { grid: grid };
   },
   snakeGame: (init) => {
     // initialize
     let grid = createGrid(init);
-    const snakeBody = [randomGridPosition(grid, init)];
-    const food = [randomGridPosition(grid, init)];
+    const snakeBody = [randomGridPosition(init)];
+    const food = [randomGridPosition(init)];
     updateGrid(grid, food[0], "food");
     updateGrid(grid, snakeBody[0], "snake");
-    return { board: grid, snakeBody, food };
+    return { grid: grid, snakeBody, food };
   },
 };
 
