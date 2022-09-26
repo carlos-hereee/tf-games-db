@@ -52,7 +52,6 @@ const checkFood = (snakeBody, options, food, game) => {
   for (let i = 0; i < food.length; i++) {
     const isOnSnake = checkCellsMatch(snakeBody[0], food[i]);
     if (isOnSnake) {
-      console.log("game.clock", snakeBody);
       options.newSegment += options.expansionRate;
       food[i] = getRandomFoodPosition(snakeBody, options.size);
     }
