@@ -1,18 +1,15 @@
 require("dotenv").config();
 const express = require("express");
-const { Server } = require("socket.io");
-const { createServer } = require("http");
 const cors = require("cors");
-const helmet = require("helmet");
-const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
-const userRouter = require("./src/routes/user-router.js");
+const mongoose = require("mongoose");
+const { Server } = require("socket.io");
 const { socketManager } = require("./src/Socket/index.js");
+const { createServer } = require("http");
+const { clientURL, port, uri } = require("./config.env.js");
+const helmet = require("helmet");
+const userRouter = require("./src/routes/user-router.js");
 
-// env
-const port = process.env.PORT;
-const uri = process.env.MONGOOSE_URI;
-const clientURL = process.env.CLIENT_BASE_URL;
 // set up
 const app = express();
 const server = createServer(app);

@@ -26,9 +26,7 @@ router.get("/:uid", validateUser, async (req, res) => {
   try {
     const user = await Users.findOne({ uid });
     if (user) {
-      res.status(200).json({
-        message: useableUserData(user),
-      });
+      res.status(200).json({ message: useableUserData(user) });
     }
   } catch {
     res.status(404).json({

@@ -1,7 +1,4 @@
-const {
-  findTicketWithPlayerId,
-  cancelTicket,
-} = require("../live-servers/lobby");
+const { findTicketWithPlayerId, cancelTicket } = require("../live-servers/lobby");
 const { findGame } = require("../live-servers/game");
 const {
   emitMessage,
@@ -34,14 +31,15 @@ const initialConnection = (socket, playerId) => {
   }
 };
 
-const socketManager = (s) => {
-  const playerId = s.handshake.query.id;
-  initialConnection(s, playerId);
-  s.on("game-new", (data) => newgame(s, data));
-  s.on("game-update", (data) => gameUpdate(s, data));
-  s.on("cancel-ticket", (data) => cancelTicket(s, data));
-  s.on("rematch", (data) => rematch(s, data));
-  s.on("game-leave", (data) => leaveGame(s, data));
+const socketManager = (socket) => {
+  const playerId = socket.handshake.query.uid;
+  console.log("playerId", playerId);
+  playerId && initialConnection(socket, playerId);
+  socket.on("game-new", (data) => newgame(socket, data));
+  socket.on("game-update", (data) => gameUpdate(socket, data));
+  socket.on("cancel-ticket", (data) => cancelTicket(socket, data));
+  socket.on("rematch", (data) => rematch(socket, data));
+  socket.on("game-leave", (data) => leaveGame(socket, data));
 };
 
 module.exports = { socketManager };
