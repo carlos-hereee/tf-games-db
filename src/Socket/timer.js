@@ -6,9 +6,10 @@ const {
 const timers = {};
 
 const startLobbyTimer = (s, player) => {
-  timers[`timerLobby${player.uid}`] = setInterval(() => {
-    const timer = Date.now();
-    emitClockLobbyData(s, { isRunning: true, timer });
+  let start = new Date().toLocaleTimeString();
+  setInterval(() => {
+    const timer = new Date().toLocaleTimeString();
+    emitClockLobbyData(s, { isRunning: true, timer, start });
   }, 1000);
 };
 const startGameTimer = (s, game) => {
