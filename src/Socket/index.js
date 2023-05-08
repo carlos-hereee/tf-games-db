@@ -14,7 +14,7 @@ const initialConnection = (socket, playerId) => {
   if (playerId) {
     socket.join(playerId);
     if (process.env.NODE_ENV === "development") {
-      console.log(`connection made on socket id : ${playerId}`);
+      console.log(`\n\nconnection made on socket id : ${playerId}\n`);
     }
     const { ticket } = findTicketWithPlayerId(playerId);
     if (ticket?.createdBy?.uid) {
@@ -33,7 +33,6 @@ const initialConnection = (socket, playerId) => {
 
 const socketManager = (socket) => {
   const playerId = socket.handshake.query.uid;
-  console.log("playerId", playerId);
   playerId && initialConnection(socket, playerId);
   socket.on("game-new", (data) => newgame(socket, data));
   socket.on("game-update", (data) => gameUpdate(socket, data));

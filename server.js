@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const { Server } = require("socket.io");
 const { socketManager } = require("./src/Socket/index.js");
 const { createServer } = require("http");
-const { clientURL, port, uri } = require("./config.env.js");
+const { clientUrl, port, uri } = require("./config.env.js");
 const helmet = require("helmet");
 const userRouter = require("./src/routes/user-router.js");
 
@@ -14,21 +14,21 @@ const userRouter = require("./src/routes/user-router.js");
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
-  cors: { origin: clientURL, methods: ["GET", "POST"] },
+  cors: { origin: clientUrl, methods: ["GET", "POST"] },
 });
 app.use(helmet());
 app.use(cookieParser());
-app.use(cors({ credentials: true, origin: clientURL }));
+app.use(cors({ credentials: true, origin: clientUrl }));
 app.use(express.json());
 app.use("/users/", userRouter);
 
 // initialize socket for the server
 io.on("connection", (socket) => socketManager(socket));
+
 // tesing server
 app.get("/", (req, res) => {
   res.status(200).json({ message: "api is running" });
 });
-
 mongoose
   .connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
